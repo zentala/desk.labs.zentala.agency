@@ -1,0 +1,110 @@
+[
+  {
+    "page": "home",
+    "path": "/",
+    "scheme": "light",
+    "status": 200,
+    "totalViolations": 0,
+    "contrastViolationCount": 0,
+    "contrastViolations": []
+  },
+  {
+    "page": "hardware",
+    "path": "/hardware",
+    "scheme": "light",
+    "status": 200,
+    "totalViolations": 0,
+    "contrastViolationCount": 0,
+    "contrastViolations": []
+  },
+  {
+    "page": "versions",
+    "path": "/versions",
+    "scheme": "light",
+    "status": 200,
+    "totalViolations": 0,
+    "contrastViolationCount": 0,
+    "contrastViolations": []
+  },
+  {
+    "page": "blog",
+    "path": "/blog",
+    "scheme": "light",
+    "status": 200,
+    "totalViolations": 0,
+    "contrastViolationCount": 0,
+    "contrastViolations": []
+  },
+  {
+    "page": "update-slug",
+    "path": "/updates/2026-09-02-v0-1-first-smart-desk-prototype",
+    "scheme": "light",
+    "status": 200,
+    "totalViolations": 0,
+    "contrastViolationCount": 0,
+    "contrastViolations": []
+  },
+  {
+    "page": "lp",
+    "path": "/lp",
+    "scheme": "light",
+    "status": 200,
+    "totalViolations": 0,
+    "contrastViolationCount": 0,
+    "contrastViolations": []
+  },
+  {
+    "page": "home",
+    "path": "/",
+    "scheme": "dark",
+    "status": 200,
+    "totalViolations": 0,
+    "contrastViolationCount": 0,
+    "contrastViolations": []
+  },
+  {
+    "page": "hardware",
+    "path": "/hardware",
+    "scheme": "dark",
+    "status": 200,
+    "totalViolations": 0,
+    "contrastViolationCount": 0,
+    "contrastViolations": []
+  },
+  {
+    "page": "versions",
+    "path": "/versions",
+    "scheme": "dark",
+    "status": 200,
+    "totalViolations": 0,
+    "contrastViolationCount": 0,
+    "contrastViolations": []
+  },
+  {
+    "page": "blog",
+    "path": "/blog",
+    "scheme": "dark",
+    "status": 200,
+    "totalViolations": 0,
+    "contrastViolationCount": 0,
+    "contrastViolations": []
+  },
+  {
+    "page": "update-slug",
+    "path": "/updates/2026-09-02-v0-1-first-smart-desk-prototype",
+    "scheme": "dark",
+    "status": 200,
+    "totalViolations": 0,
+    "contrastViolationCount": 0,
+    "contrastViolations": []
+  },
+  {
+    "page": "lp",
+    "path": "/lp",
+    "scheme": "dark",
+    "status": 200,
+    "totalViolations": 0,
+    "contrastViolationCount": 0,
+    "contrastViolations": []
+  }
+]
