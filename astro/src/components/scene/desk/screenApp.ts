@@ -10,12 +10,34 @@
  */
 import { scenePalette as p, stateFill, stateText, stateTint, type DeskState } from "../scenePalette";
 import { roundRect, wrapText, SCREEN_FONT } from "../kit";
+import type { ScreenToast } from "../kit/timeline";
+
+/** What the story timeline adds to the screen (`beatAt`): the toast, the phone-style timer label and the clock. */
+export interface ScreenStory {
+  toast: ScreenToast;
+  timer: string;
+  clock: string;
+}
+
+interface ToastCard {
+  title: string;
+  body: string;
+  accent: "brand" | "standing" | "muted" | "away";
+}
+
+const STORY_TOAST: Record<Exclude<ScreenToast, "none">, ToastCard> = {
+  calendar: { title: "Calendar", body: "1 event at 15:00.", accent: "muted" },
+  nudge: { title: "Time to stand up", body: "40 min sitting. Up for a minute?", accent: "brand" },
+  done: { title: "20 min standing done", body: "Nice work. +1 credit.", accent: "standing" },
+  away: { title: "Away", body: "Timer paused.", accent: "away" },
+};
 
 export const SCREEN_DESIGN = { w: 1000, h: 417 } as const;
 
-const TOAST: Partial<Record<DeskState, { title: string; body: string }>> = {
-  sitting: { title: "Time to stand up", body: "40 min sitting. Up for a minute?" },
-  standing: { title: "Nice one.", body: "Credit is ticking." },
+/** Without a story (the button scene), each settled state has one toast. */
+const STATE_TOAST: Partial<Record<DeskState, ToastCard>> = {
+  sitting: STORY_TOAST.nudge,
+  standing: { title: "Nice one.", body: "Credit is ticking.", accent: "standing" },
 };
 
 const LABEL: Record<DeskState, string> = {
@@ -23,11 +45,11 @@ const LABEL: Record<DeskState, string> = {
   rising: "Rising",
   lowering: "Lowering",
   standing: "Standing",
+  away: "Away",
 };
 
 /** State chip: icon + label, never colour alone (DESIGN.md §3). */
-function drawChip(ctx: CanvasRenderingContext2D, x: number, y: number, state: DeskState) {
-  const label = LABEL[state];
+function drawChip(ctx: CanvasRenderingContext2D, x: number, y: number, state: DeskState, label = LABEL[state]) {
   const h = 76;
   ctx.font = `600 42px ${SCREEN_FONT.body}`;
   const w = ctx.measureText(label).width + 118;
@@ -54,6 +76,12 @@ function drawChip(ctx: CanvasRenderingContext2D, x: number, y: number, state: De
     ctx.moveTo(cx - 9, cy - 2);
     ctx.lineTo(cx, cy - 11);
     ctx.lineTo(cx + 9, cy - 2);
+  } else if (state === "away") {
+    // pause: two bars
+    ctx.moveTo(cx - 5, cy - 10);
+    ctx.lineTo(cx - 5, cy + 10);
+    ctx.moveTo(cx + 5, cy - 10);
+    ctx.lineTo(cx + 5, cy + 10);
   } else {
     const d = state === "rising" ? -1 : 1;
     ctx.moveTo(cx - 10, cy - 6 * d);
@@ -70,7 +98,7 @@ function drawChip(ctx: CanvasRenderingContext2D, x: number, y: number, state: De
   ctx.textBaseline = "alphabetic";
 }
 
-function drawReadout(ctx: CanvasRenderingContext2D, state: DeskState, heightCm: number) {
+function drawReadout(ctx: CanvasRenderingContext2D, state: DeskState, heightCm: number, chipLabel?: string) {
   const x = 44;
   ctx.fillStyle = p.inkMuted;
   ctx.font = `500 30px ${SCREEN_FONT.body}`;
@@ -82,11 +110,17 @@ function drawReadout(ctx: CanvasRenderingContext2D, state: DeskState, heightCm: 
   ctx.fillStyle = p.inkMuted;
   ctx.font = `600 76px ${SCREEN_FONT.display}`;
   ctx.fillText("cm", x + numW + 10, 300);
-  drawChip(ctx, x + 4, 326, state);
+  drawChip(ctx, x + 4, 326, state, chipLabel);
 }
 
-function drawToast(ctx: CanvasRenderingContext2D, w: number, h: number, state: DeskState) {
-  const toast = TOAST[state];
+function accentColor(accent: ToastCard["accent"]): string {
+  if (accent === "brand") return p.brand;
+  if (accent === "standing") return p.standing;
+  if (accent === "away") return p.away;
+  return p.inkMuted;
+}
+
+function drawToast(ctx: CanvasRenderingContext2D, w: number, toast: ToastCard | undefined) {
   if (!toast) return;
   // its own column on the right, clear of the readout and the unit
   const cardW = 380;
@@ -101,10 +135,10 @@ function drawToast(ctx: CanvasRenderingContext2D, w: number, h: number, state: D
   roundRect(ctx, x, y, cardW, cardH, 26);
   ctx.fill();
   ctx.restore();
-  ctx.fillStyle = state === "sitting" ? p.brand : p.standing;
+  ctx.fillStyle = accentColor(toast.accent);
   roundRect(ctx, x + 22, y + 30, 8, cardH - 60, 4);
   ctx.fill();
-  ctx.fillStyle = state === "sitting" ? p.ink : stateText(p, state);
+  ctx.fillStyle = toast.accent === "standing" ? stateText(p, "standing") : p.ink;
   ctx.font = `600 44px ${SCREEN_FONT.display}`;
   ctx.fillText(toast.title, x + 54, y + 66);
   ctx.fillStyle = p.inkMuted;
@@ -112,12 +146,21 @@ function drawToast(ctx: CanvasRenderingContext2D, w: number, h: number, state: D
   wrapText(ctx, toast.body, x + 54, y + 114, cardW - 80, 40);
 }
 
-/** Paint the whole app for a state and desk height. */
-export function drawScreen(ctx: CanvasRenderingContext2D, w: number, h: number, state: DeskState, heightCm: number) {
+function drawClock(ctx: CanvasRenderingContext2D, w: number, h: number, clock: string) {
+  ctx.fillStyle = p.inkMuted;
+  ctx.font = `500 30px ${SCREEN_FONT.body}`;
+  ctx.textAlign = "right";
+  ctx.fillText(clock, w - 40, h - 34);
+  ctx.textAlign = "left";
+}
+
+/** Paint the whole app for a state and desk height; `story` adds the timeline's toast, timer and clock. */
+export function drawScreen(ctx: CanvasRenderingContext2D, w: number, h: number, state: DeskState, heightCm: number, story?: ScreenStory) {
   ctx.fillStyle = p.bg;
   ctx.fillRect(0, 0, w, h);
   ctx.fillStyle = "rgba(31,36,48,0.06)";
   ctx.fillRect(0, 0, w, h);
-  drawReadout(ctx, state, heightCm);
-  drawToast(ctx, w, h, state);
+  drawReadout(ctx, state, heightCm, story?.timer);
+  drawToast(ctx, w, story ? (story.toast === "none" ? undefined : STORY_TOAST[story.toast]) : STATE_TOAST[state]);
+  if (story) drawClock(ctx, w, h, story.clock);
 }

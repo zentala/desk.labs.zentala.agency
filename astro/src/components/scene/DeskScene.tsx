@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
+import { Suspense, lazy, useEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { useThree } from "@react-three/fiber";
 import { View } from "@react-three/drei";
 import type { DeskState } from "./scenePalette";
@@ -24,6 +24,10 @@ import { deskHeight, deskHeightCm } from "./desk/dims";
 import { Projector, type ProjectedAnchors } from "./callouts/Projector";
 import { Callouts, placeCallouts, CIRCLE_PX, LIST_CIRCLE_PX, type PlacedCallout, type TrackRefs } from "./callouts/Callouts";
 import { useTween, useDirection, useElementSize } from "./desk/hooks";
+import { beatAt, beatMidpoints, walkOffset, type SceneFrame } from "./kit/timeline";
+
+/** N8AO (ambient occlusion, ADR-012 amendment): its own chunk, fetched only where it is mounted */
+const SceneAO = lazy(() => import("./SceneAO"));
 
 /**
  * DeskScene v6 — hero scene of the family (DESIGN.md §8), drawn with the kit.
@@ -31,16 +35,23 @@ import { useTween, useDirection, useElementSize } from "./desk/hooks";
  * One number drives everything: `t` (0 = sitting, 1 = standing). The desk
  * height, the person's pose, the chair, the screen readout and the toast all
  * derive from it. `t` comes from the buttons (600 ms tween) or, in `scroll`
- * mode, from the page scroll through a tall wrapper. One shared canvas holds
+ * mode, from the storyboard: the page scroll through a tall wrapper is the
+ * story progress `u`, and `beatAt(u)` (kit/timeline.ts, spec §11) gives the
+ * desk, pose, chair, screen toast, timer and clock. One shared canvas holds
  * three drei Views: the hero, and two callout insets in a paper column beside
  * it (a row under it on narrow screens). The canvas is clipped to the hero
  * rectangle plus the inset circles, so the square View scissors never show.
  * Reduced motion: no tween, no parallax, no scroll drive.
  */
 
-const SCROLL_TRAVEL_VH = 240;
-/** scroll mode: the desk is seated for the first 12 % and fully up by 85 % of the travel */
-const SCROLL_WINDOW: [number, number] = [0.12, 0.85];
+/** spec §11: the story runs over one long section, target ≈ 600 vh */
+const SCROLL_TRAVEL_VH = 600;
+/** where the Sit / Stand buttons jump to in scroll mode: the middle of beat 1 and of beat 5 */
+const STORY_SIT_U = beatMidpoints()[0];
+const STORY_STAND_U = beatMidpoints()[4];
+/** N8AO only on wide desktop screens with a fine pointer and at least this many cores */
+const AO_MIN_WIDTH_PX = 1024;
+const AO_MIN_CORES = 6;
 /** |t| within this of an end is "settled": toast and callouts show */
 const SETTLE_EPS = 0.02;
 /** the callout column beside the hero, CSS px */
@@ -49,6 +60,12 @@ const COLUMN_PX = 236;
 function smoothstep(t: number): number {
   const c = Math.min(1, Math.max(0, t));
   return c * c * (3 - 2 * c);
+}
+
+function wantsAmbientOcclusion(): boolean {
+  if (typeof window === "undefined") return false;
+  const cores = navigator.hardwareConcurrency ?? AO_MIN_CORES;
+  return window.matchMedia(`(min-width: ${AO_MIN_WIDTH_PX}px)`).matches && cores >= AO_MIN_CORES;
 }
 
 function hasCoarsePointer(): boolean {
@@ -72,28 +89,41 @@ interface SceneContentProps {
   chairStyle: ChairStyle;
   figureStyle: FigureStyle;
   onProject?: (points: ProjectedAnchors) => void;
+  /** scroll mode: the storyboard frame (pose, chair, walk-out, screen story) */
+  frame?: SceneFrame | null;
 }
 
+
 /** The objects, derived from `t`. Insets ask for a subset. */
-function SceneContent({ t, state, breathe, parts, chairStyle, figureStyle, onProject }: SceneContentProps) {
+function SceneContent({ t, state, breathe, parts, chairStyle, figureStyle, onProject, frame }: SceneContentProps) {
   const palette = useScenePalette();
   const { invalidate } = useThree();
-  useEffect(() => invalidate(), [t, palette, invalidate]);
+  useEffect(() => invalidate(), [t, palette, invalidate, frame]);
 
   const heightM = deskHeight(t);
   const heightCm = deskHeightCm(t);
   const port = monitorPort(heightM);
-  const pose = standUp(t);
+  const pose = standUp(frame ? frame.poseT : t);
   const s = sensorCenter(heightM);
+  // the away beat: the procedural figure slides out (no gait)
+  const walk = frame ? walkOffset(frame) : { position: [0, 0, 0], yaw: 0 };
+  const story = frame ? { toast: frame.toast, timer: frame.timer, clock: frame.clock } : undefined;
+  const hipZ = pose.hip[2];
 
   return (
     <>
       <Desk heightM={heightM} palette={palette} topOnly={parts !== "all"} />
       <Sensor heightM={heightM} palette={palette} port={port} breathe={breathe} withBeam={parts !== "monitor"} />
-      {parts !== "sensor" && <Monitor heightM={heightM} state={state} heightCm={heightCm} palette={palette} withScreen={parts === "all"} />}
+      {parts !== "sensor" && <Monitor heightM={heightM} state={state} heightCm={heightCm} palette={palette} withScreen={parts === "all"} story={story} />}
       {parts === "all" && <DeskProps heightM={heightM} palette={palette} />}
-      {parts === "all" && <Chair t={smoothstep(t)} palette={palette} chairStyle={chairStyle} />}
-      {parts === "all" && <Person pose={pose} color={palette.figure} figureStyle={figureStyle} />}
+      {parts === "all" && <Chair t={frame ? frame.chairT : smoothstep(t)} palette={palette} chairStyle={chairStyle} />}
+      {parts === "all" && (
+        <group position={[walk.position[0], 0, hipZ + walk.position[2]]} rotation={[0, walk.yaw, 0]}>
+          <group position={[0, 0, -hipZ]}>
+            <Person pose={pose} color={palette.figure} figureStyle={figureStyle} />
+          </group>
+        </group>
+      )}
       {parts === "all" && onProject && (
         <Projector anchors={{ sensor: [s[0] + 0.05, s[1] - 0.01, s[2] + 0.02], cable: [port[0] + 0.03, port[1], port[2]] }} onChange={onProject} />
       )}
@@ -139,6 +169,7 @@ export default function DeskScene({
 }: DeskSceneProps) {
   const [reduced] = useState(prefersReducedMotion);
   const [coarse] = useState(hasCoarsePointer);
+  const [aoCapable] = useState(wantsAmbientOcclusion);
   const [narrow, setNarrow] = useState(false);
   const palette = useScenePalette();
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -190,11 +221,11 @@ export default function DeskScene({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [narrow, callouts, boxSize.width]);
 
-  const t = scrollMode
-    ? Math.min(1, Math.max(0, (progress - SCROLL_WINDOW[0]) / (SCROLL_WINDOW[1] - SCROLL_WINDOW[0])))
-    : tweenT;
+  const frame = scrollMode ? beatAt(progress) : null;
+  const t = frame ? frame.deskT : tweenT;
   const direction = useDirection(t);
-  const state = stateFor(t, direction);
+  const state = frame ? frame.state : stateFor(t, direction);
+  const ambientOcclusion = aoCapable && !reduced && !coarse && !narrow;
   const settled = state === "sitting" || state === "standing";
   const cams = insetCameras(deskHeight(t));
 
@@ -206,7 +237,7 @@ export default function DeskScene({
   const setState = (next: "sitting" | "standing") => {
     const target = next === "standing" ? 1 : 0;
     if (scrollMode && wrapperRef.current) {
-      scrollToProgress(wrapperRef.current, target === 1 ? SCROLL_WINDOW[1] + 0.03 : 0, true);
+      scrollToProgress(wrapperRef.current, target === 1 ? STORY_STAND_U : STORY_SIT_U, true);
     } else {
       go(target);
     }
@@ -223,7 +254,7 @@ export default function DeskScene({
   });
 
   const content = (parts: Parts, onProject?: (p: ProjectedAnchors) => void) => (
-    <SceneContent t={t} state={state} breathe={!reduced} parts={parts} chairStyle={chairStyle} figureStyle={figureStyle} onProject={onProject} />
+    <SceneContent t={t} state={state} breathe={!reduced} parts={parts} chairStyle={chairStyle} figureStyle={figureStyle} onProject={onProject} frame={frame} />
   );
 
   const figure = (
@@ -264,6 +295,11 @@ export default function DeskScene({
           <World palette={palette} parallax={!reduced && !coarse} lift={smoothstep(t)} portrait={narrow}>
             {content("all", setAnchors)}
           </World>
+          {ambientOcclusion && (
+            <Suspense fallback={null}>
+              <SceneAO />
+            </Suspense>
+          )}
         </View>
         {callouts && (
           <InsetView track={tracks.sensor} visible={settled || narrow} index={2} palette={palette} fov={13} {...cams.sensor}>

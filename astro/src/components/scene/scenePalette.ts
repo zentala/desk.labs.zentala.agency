@@ -7,8 +7,8 @@
  * the world stays the same room in both themes.
  */
 
-/** Settled states plus the two transitional ones the screen shows while the desk moves. */
-export type DeskState = "sitting" | "rising" | "lowering" | "standing";
+/** Settled states, the two transitional ones the screen shows while the desk moves, and away (spec §11 beat 9). */
+export type DeskState = "sitting" | "rising" | "lowering" | "standing" | "away";
 
 /** Colours that differ between light and dark (DESIGN.md §8.2). */
 interface ThemedColors {
@@ -50,8 +50,10 @@ interface FixedColors {
   inkMuted: string;
   /** token: color.material.screen */
   screen: string;
-  /** token: color.material.pcb */
+  /** token: color.material.pcb — kept for UI parity; the enclosure uses `sensor` */
   pcb: string;
+  /** token: color.material.sensor — the sensor enclosure (owner, E005 studio) */
+  sensor: string;
   /** token: color.material.copper */
   copper: string;
   /** token: color.material.sweater — person ghost, notebook */
@@ -109,6 +111,7 @@ const FIXED: FixedColors = {
   inkMuted: "#5B6270",
   screen: "#FFFFFF",
   pcb: "#0F6B3A",
+  sensor: "#9D7E7E",
   copper: "#D9B26F",
   sweater: "#2F4A9C",
   sitting: "#F5C451",

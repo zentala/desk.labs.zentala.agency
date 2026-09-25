@@ -8,30 +8,11 @@ import { useCallback } from "react";
 import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import type { DeskState, ScenePalette } from "../scenePalette";
-import { Block, useCanvasTexture, type Vec3 } from "../kit";
-import { drawScreen, SCREEN_DESIGN } from "./screenApp";
+import { Block, useCanvasTexture } from "../kit";
+import { drawScreen, SCREEN_DESIGN, type ScreenStory } from "./screenApp";
+import { MONITOR, bodyY, monitorPort } from "./monitorGeometry";
 
-/** Physical size: 34" 21:9 panel ≈ 78 × 32.5 cm; body slightly larger. */
-export const MONITOR = {
-  screen: [0.78, 0.325] as [number, number],
-  body: [0.82, 0.365, 0.03] as Vec3,
-  neck: [0.06, 0.15, 0.025] as Vec3,
-  base: [0.28, 0.012, 0.17] as Vec3,
-  /** neck position on the desk (z from desk centre) */
-  z: -0.17,
-  /** body group z offset from the neck */
-  bodyZ: 0.02,
-} as const;
-
-/** Body centre height above the desk top. */
-function bodyY(heightM: number): number {
-  return heightM + MONITOR.base[1] + MONITOR.neck[1] + MONITOR.body[1] / 2 - 0.04;
-}
-
-/** World position of the USB-C port on the right side of the body. */
-export function monitorPort(heightM: number): Vec3 {
-  return [MONITOR.body[0] / 2, bodyY(heightM) - 0.06, MONITOR.z + MONITOR.bodyZ];
-}
+export { MONITOR, monitorPort } from "./monitorGeometry";
 
 const MIN_TEXELS = 256;
 const MAX_TEXELS = 2048;
@@ -56,21 +37,22 @@ interface ScreenProps {
   heightCm: number;
   /** fixed texture width for views whose camera is not the hero lens (insets) */
   fixedPixels?: number;
+  story?: ScreenStory;
 }
 
-function Screen({ heightM, state, heightCm, fixedPixels }: ScreenProps) {
+function Screen({ heightM, state, heightCm, fixedPixels, story }: ScreenProps) {
   const projected = useScreenPixels(heightM);
   const pixelWidth = fixedPixels ?? projected;
   const draw = useCallback(
-    (ctx: CanvasRenderingContext2D, w: number, h: number) => drawScreen(ctx, w, h, state, heightCm),
-    [state, heightCm],
+    (ctx: CanvasRenderingContext2D, w: number, h: number) => drawScreen(ctx, w, h, state, heightCm, story),
+    [state, heightCm, story?.toast, story?.timer, story?.clock],
   );
   const texture = useCanvasTexture({
     designWidth: SCREEN_DESIGN.w,
     designHeight: SCREEN_DESIGN.h,
     pixelWidth,
     draw,
-    deps: [state, heightCm],
+    deps: [state, heightCm, story?.toast, story?.timer, story?.clock],
   });
   return (
     <mesh position={[0, 0, MONITOR.body[2] / 2 + 0.001]}>
@@ -89,9 +71,11 @@ export interface MonitorProps {
   withScreen?: boolean;
   /** insets pass a fixed texture width; the hero sizes it from projected pixels */
   screenPixels?: number;
+  /** the storyboard's toast, timer and clock (`beatAt`); omitted = the button scene's fixed toasts */
+  story?: ScreenStory;
 }
 
-export function Monitor({ heightM, state, heightCm, palette, withScreen = true, screenPixels }: MonitorProps) {
+export function Monitor({ heightM, state, heightCm, palette, withScreen = true, screenPixels, story }: MonitorProps) {
   const baseY = heightM + MONITOR.base[1] / 2;
   const neckY = heightM + MONITOR.base[1] + MONITOR.neck[1] / 2;
   const port = monitorPort(heightM);
@@ -102,7 +86,7 @@ export function Monitor({ heightM, state, heightCm, palette, withScreen = true, 
       <Block size={MONITOR.neck} position={[0, neckY, 0]} color={palette.ink} finish="satin" />
       <group position={[0, bodyY(heightM), MONITOR.bodyZ]}>
         <Block size={MONITOR.body} color={palette.ink} finish="satin" />
-        {withScreen && <Screen heightM={heightM} state={state} heightCm={heightCm} fixedPixels={screenPixels} />}
+        {withScreen && <Screen heightM={heightM} state={state} heightCm={heightCm} fixedPixels={screenPixels} story={story} />}
         {/* USB-C port: a slot in the right side face, with the plug seated in it */}
         <Block size={[0.004, 0.009, 0.02]} position={[MONITOR.body[0] / 2 + 0.001, port[1] - bodyY(heightM), 0]} color={palette.inkMuted} castShadow={false} />
         <Block size={[0.024, 0.007, 0.012]} position={[MONITOR.body[0] / 2 + 0.013, port[1] - bodyY(heightM), 0]} color={palette.fabric} />
