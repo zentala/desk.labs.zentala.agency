@@ -1,0 +1,54 @@
+{
+  "consoleErrors": 0,
+  "consoleWarnings": 5,
+  "entries": [
+    {
+      "page": "studio",
+      "type": "warning",
+      "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    },
+    {
+      "page": "studio",
+      "type": "warning",
+      "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    },
+    {
+      "page": "home-desktop",
+      "type": "warning",
+      "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    },
+    {
+      "page": "home-desktop-reduced",
+      "type": "warning",
+      "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    },
+    {
+      "page": "home-mobile",
+      "type": "warning",
+      "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    }
+  ],
+  "determinism": [
+    {
+      "figure": "ual",
+      "u": 0.62,
+      "identical": true
+    },
+    {
+      "figure": "ual",
+      "u": 0.38,
+      "identical": true
+    },
+    {
+      "figure": "faceted",
+      "u": 0.4,
+      "identical": true
+    }
+  ],
+  "playerStatusAfter2s": "u 0.198 · beat 2 nudge · 14:40 · Sitting · 40:00 · figure: ours: faceted · our style · frameloop always",
+  "n8aoChunkLoaded": {
+    "desktop": true,
+    "reducedMotion": false,
+    "mobile": false
+  }
+}
