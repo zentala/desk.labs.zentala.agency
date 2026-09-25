@@ -1,4 +1,4 @@
-/** Spike — drei PCSS soft shadows (patches the shadow shader chunk while mounted). */
+/** Studio — drei PCSS soft shadows (patches the shadow shader chunk while mounted). */
 import { SoftShadows } from "@react-three/drei";
 
 export default function SoftShadowsPlugin() {

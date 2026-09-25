@@ -1,5 +1,5 @@
 /**
- * Spike — the kit's sketched figure (`kit/Person.tsx`) with three body
+ * Studio — the kit's sketched figure (`kit/Person.tsx`) with three body
  * parameters exposed (shoulder width, leg thickness, waist) and an optional
  * drei `<Outlines>` on every mesh. Same joints, same poses.
  */

@@ -1,5 +1,5 @@
 /**
- * Spike — boytchev's mannequin.js (npm `mannequin-js` 5.2, GPL-3.0). The
+ * Studio — boytchev's mannequin.js (npm `mannequin-js` 5.2, GPL-3.0). The
  * package builds its own full-screen renderer, scene and camera at import
  * time (`src/scene.js` runs `initStage()` on load and every Mannequin adds
  * itself to that scene), so we import it lazily, tear that stage down and
@@ -7,7 +7,18 @@
  */
 import { useEffect, useState } from "react";
 import * as THREE from "three";
-import type { FigureAction } from "./settings";
+import type { SceneFrame } from "../scene/kit/timeline";
+
+type Posture = "sit" | "stand" | "walk";
+
+/** The library is posed, not animated: snap to the nearer end of a transition. */
+function postureOf(frame: SceneFrame): Posture {
+  if (frame.action === "walk") return "walk";
+  if (frame.action === "sit") return "sit";
+  if (frame.action === "stand") return "stand";
+  const up = frame.action === "lower" ? 1 - frame.actionT : frame.actionT;
+  return up < 0.5 ? "sit" : "stand";
+}
 
 interface MannequinLike extends THREE.Group {
   turn: number;
@@ -52,7 +63,7 @@ function loadMannequin(): Promise<MannequinModule> {
   return modulePromise;
 }
 
-function pose(man: MannequinLike, action: FigureAction): void {
+function pose(man: MannequinLike, action: Posture): void {
   const sit = action === "sit";
   // the library's default is -90 (facing +Z, its own camera); +90 faces our desk at -Z
   man.turn = 90;
@@ -90,12 +101,14 @@ function restyle(root: THREE.Object3D, color: string): () => void {
 }
 
 export interface MannequinFigureProps {
-  action: FigureAction;
+  frame: SceneFrame;
+  walk: { position: [number, number, number]; yaw: number };
   ourStyle: boolean;
   color: string;
 }
 
-export default function MannequinFigure({ action, ourStyle, color }: MannequinFigureProps) {
+export default function MannequinFigure({ frame, walk, ourStyle, color }: MannequinFigureProps) {
+  const action = postureOf(frame);
   const [man, setMan] = useState<MannequinLike | null>(null);
   const [ground, setGround] = useState(0);
 
@@ -126,8 +139,8 @@ export default function MannequinFigure({ action, ourStyle, color }: MannequinFi
   if (!man) return null;
   // the library rests the feet at its ground level; sit height comes from the chair seat (0.47 m)
   const y = action === "sit" ? -ground - 0.02 - 0.48 : -ground;
-  const at: [number, number, number] = action === "sit" ? [0, y, 0.62] : action === "walk" ? [0.7, y, 0.9] : [0, y, 0.5];
-  const yaw = action === "walk" ? Math.PI * 0.75 : 0;
+  const at: [number, number, number] = action === "sit" ? [0, y, 0.62] : [walk.position[0], y, 0.5 + walk.position[2]];
+  const yaw = walk.yaw;
   return (
     <group position={at} rotation={[0, yaw, 0]}>
       <primitive object={man} />
