@@ -7,11 +7,34 @@
  * different cameras. Events come from the tracked elements, not the canvas.
  */
 import type { ReactNode, RefObject } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { LIGHT } from "./style";
 
 const CANVAS_HEIGHT = "250%";
+/** runs before every drei View (their priorities are their `index`, 1 and up) */
+const BEFORE_VIEWS = 0;
+
+/**
+ * Keeps the canvas rect current inside the frame being drawn.
+ *
+ * A View places its scissor from the LIVE tracked rect minus the canvas rect
+ * held in `state.size`, which R3F only re-measures after the debounced scroll
+ * settles (and then through a React render). Every frame drawn mid-scroll used
+ * that stale rect and landed offset by the distance scrolled — up to 220 px on
+ * /lab/desk-scene (E005 libs spike). The View holds the very same `size`
+ * object, so refreshing `top`/`left` in place fixes the frame being drawn;
+ * the debounced measurement still replaces the object once scrolling stops.
+ */
+function SyncCanvasRect() {
+  useFrame((state) => {
+    const rect = state.gl.domElement.getBoundingClientRect();
+    const size = state.size as { top: number; left: number };
+    size.top = rect.top;
+    size.left = rect.left;
+  }, BEFORE_VIEWS);
+  return null;
+}
 
 export interface SceneCanvasProps {
   /** the element whose descendants are tracked by the views; the canvas is absolutely positioned inside it */
@@ -43,6 +66,7 @@ export function SceneCanvas({ eventSource, clipPath, children }: SceneCanvasProp
       // scissored per view, so the extra area costs memory, not fill rate.
       style={{ position: "absolute", top: 0, left: 0, width: "100%", height: CANVAS_HEIGHT, pointerEvents: "none", clipPath }}
     >
+      <SyncCanvasRect />
       {children}
     </Canvas>
   );
