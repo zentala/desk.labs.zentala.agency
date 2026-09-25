@@ -20,6 +20,8 @@ interface ModelSpec {
   clips: Record<FigureAction, string>;
   /** clips that end in a held pose rather than loop */
   once: string[];
+  /** rotation about Y that makes the model face the desk (-Z) */
+  faceDesk: number;
   /** root position per action, feet on the floor */
   at: Record<FigureAction, [number, number, number]>;
 }
@@ -30,21 +32,24 @@ const MODELS: Record<GltfKind, ModelSpec> = {
     height: 1.6,
     clips: { sit: "Sitting", stand: "Standing", walk: "Walking" },
     once: ["Sitting", "Standing"],
-    at: { sit: [0, 0, 0.56], stand: [0, 0, 0.5], walk: [0.7, 0, 0.9] },
+    faceDesk: 0,
+    at: { sit: [0, 0, 0.62], stand: [0, 0, 0.5], walk: [0.7, 0, 0.9] },
   },
   kenney: {
     url: "/models/spike/KenneyMiniCharacterMaleB.glb",
     height: 1.5,
     clips: { sit: "sit", stand: "idle", walk: "walk" },
     once: [],
-    at: { sit: [0, 0, 0.52], stand: [0, 0, 0.5], walk: [0.7, 0, 0.9] },
+    faceDesk: 0,
+    at: { sit: [0, 0, 0.6], stand: [0, 0, 0.5], walk: [0.7, 0, 0.9] },
   },
   quaternius: {
     url: "/models/spike/QuaterniusAnimationLibrary.gltf",
     height: 1.75,
     clips: { sit: "Sitting_Idle_Loop", stand: "Idle_Loop", walk: "Walk_Loop" },
     once: [],
-    at: { sit: [0, 0, 0.55], stand: [0, 0, 0.5], walk: [0.7, 0, 0.9] },
+    faceDesk: Math.PI,
+    at: { sit: [0, 0, 0.64], stand: [0, 0, 0.5], walk: [0.7, 0, 0.9] },
   },
 };
 
@@ -55,6 +60,23 @@ interface GltfFigureProps {
   action: FigureAction;
   ourStyle: boolean;
   color: string;
+}
+
+/** Rest-pose height with skinning applied (geometry bounds alone are wrong for rig-scaled meshes like RobotExpressive). */
+function skinnedHeight(root: THREE.Object3D): number {
+  root.updateMatrixWorld(true);
+  const box = new THREE.Box3();
+  root.traverse((o) => {
+    const mesh = o as THREE.SkinnedMesh;
+    if (!mesh.isMesh) return;
+    if (mesh.isSkinnedMesh) {
+      mesh.computeBoundingBox();
+      if (mesh.boundingBox) box.union(mesh.boundingBox.clone().applyMatrix4(mesh.matrixWorld));
+    } else {
+      box.expandByObject(mesh);
+    }
+  });
+  return box.max.y - box.min.y;
 }
 
 /** Restyle every mesh to one flat-shaded Lambert in our token; returns the undo. */
@@ -84,10 +106,11 @@ export default function GltfFigure({ kind, action, ourStyle, color }: GltfFigure
   const { actions, mixer } = useAnimations(gltf.animations, scene);
 
   const scale = useMemo(() => {
-    const box = new THREE.Box3().setFromObject(gltf.scene);
-    const h = box.max.y - box.min.y;
+    const h = skinnedHeight(scene);
+    const plain = new THREE.Box3().setFromObject(scene);
+    console.info(`[spike] ${kind}: skinned height ${h.toFixed(3)}, plain box ${(plain.max.y - plain.min.y).toFixed(3)} (y ${plain.min.y.toFixed(2)}..${plain.max.y.toFixed(2)}) → scale ${(spec.height / h).toFixed(3)}`);
     return h > 0 ? spec.height / h : 1;
-  }, [gltf.scene, spec.height]);
+  }, [scene, spec.height, kind]);
 
   useEffect(() => {
     scene.traverse((o) => {
@@ -125,7 +148,7 @@ export default function GltfFigure({ kind, action, ourStyle, color }: GltfFigure
     };
   }, [actions, action, spec, kind, mixer]);
 
-  const yaw = action === "walk" ? Math.PI * 0.75 + Math.PI : Math.PI;
+  const yaw = spec.faceDesk + (action === "walk" ? Math.PI * 0.75 : 0);
   return (
     <group ref={group} position={spec.at[action]} rotation={[0, yaw, 0]} scale={scale}>
       <primitive object={scene} />

@@ -125,7 +125,7 @@ export default function MannequinFigure({ action, ourStyle, color }: MannequinFi
   if (!man) return null;
   // the library rests the feet at its ground level; sit height comes from the chair seat (0.47 m)
   const y = action === "sit" ? -ground - 0.02 - 0.48 : -ground;
-  const at: [number, number, number] = action === "sit" ? [0, y, 0.55] : action === "walk" ? [0.7, y, 0.9] : [0, y, 0.5];
+  const at: [number, number, number] = action === "sit" ? [0, y, 0.62] : action === "walk" ? [0.7, y, 0.9] : [0, y, 0.5];
   const yaw = action === "walk" ? Math.PI * 0.75 : 0;
   return (
     <group position={at} rotation={[0, yaw, 0]}>

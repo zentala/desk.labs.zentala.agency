@@ -117,8 +117,8 @@ export default function SpikeLab() {
   }, [set]);
 
   return (
-    <div data-spike-root>
-      <Leva titleBar={{ title: "spike", filter: false }} collapsed={false} />
+    <div data-spike-root style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+      <div style={{ flex: "1 1 auto", minWidth: 0 }}>
       <div data-spike-canvas style={{ position: "relative", aspectRatio: "1.25", borderRadius: 24, overflow: "hidden", background: "var(--color-bg)" }}>
         <Canvas
           frameloop={settings.frameloop}
@@ -139,6 +139,10 @@ export default function SpikeLab() {
       <p data-spike-status style={{ fontSize: 13, color: "var(--color-ink-muted)", marginTop: 8 }}>
         figure: {FIGURE_LABELS[settings.figure]} · {settings.ourStyle ? "our style" : "original"} · {settings.action} · cable {settings.cable} · frameloop {settings.frameloop}
       </p>
+      </div>
+      <div data-spike-panel style={{ flex: "0 0 300px", position: "sticky", top: 16 }}>
+        <Leva fill flat titleBar={{ title: "spike", filter: false, drag: false }} collapsed={false} />
+      </div>
     </div>
   );
 }

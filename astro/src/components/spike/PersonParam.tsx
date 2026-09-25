@@ -19,13 +19,14 @@ interface StyleProps {
   inkColor: string;
 }
 
-const OUTLINE_THICKNESS = 0.012;
+/** screen-space so the scaled ellipsoids get the same line as the capsules */
+const OUTLINE_PX = 1.5;
 
 function Skin({ color, smooth, outlines, inkColor }: StyleProps) {
   return (
     <>
       {smooth ? <meshLambertMaterial color={color} /> : <meshLambertMaterial color={color} flatShading />}
-      {outlines && <Outlines thickness={OUTLINE_THICKNESS} color={inkColor} />}
+      {outlines && <Outlines screenspace thickness={OUTLINE_PX} color={inkColor} />}
     </>
   );
 }
