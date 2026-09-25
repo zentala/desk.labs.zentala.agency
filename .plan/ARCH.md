@@ -33,6 +33,11 @@ This repository currently contains two parallel website layers:
    - React islands for interactive sections
    - current focus of development
 
+## 3D desk scene
+
+`astro/src/components/scene/kit/timeline.ts` (`beatAt(u)`) is the single storyboard driver for the
+homepage scroll and the `/lab/studio` player (ADR-012 amendment); N8AO is a lazy desktop-only chunk.
+
 ## Near-Term Direction
 
 - Preserve the legacy root website as historical or migration material.

@@ -82,6 +82,24 @@ Trade-offs:
 - the figure's anatomy is still hand-tuned; the spec's canon table is the reference for R-26..28;
 - the spec's storyboard (phone, clock, hotspots, orbit) is ~60 points of work not yet built.
 
+## Amendment 2026-09-25 — N8AO and one storyboard timeline (E005 studio)
+
+Status: accepted by the owner after the library spike (`/lab/studio`).
+
+- **N8AO adopted** for the hero view (`SceneAO.tsx`, `@react-three/postprocessing` + `n8ao`).
+  It is its own lazy chunk (≈ 96 kB gzip) mounted only on wide desktop screens (≥ 1024 px,
+  fine pointer, ≥ 6 cores) and never under reduced motion or on mobile, so the homepage's
+  eager bundle does not grow by it. This relaxes "no post-processing" for desktop only.
+- **One timeline.** `kit/timeline.ts` `beatAt(u)` is the single, pure storyboard driver
+  (spec §11): the homepage scroll (DeskScene scroll mode) and the studio player both call it.
+  Ready-made figures in the studio are posed from `u` with `mixer.update(0)`, never from a
+  clock, so the same `u` gives the same image (verified by screenshot byte equality).
+- **Rejected:** Rapier rope and catenary cables (the owner kept Catmull-Rom), RobotExpressive
+  and Kenney (stylised, not a person), Theatre.js (R3F v8 peer, AGPL studio).
+- **Still procedural on the site:** the homepage keeps our faceted figure; ready-made CC0/MIT
+  candidates (Quaternius UAL + Base Characters, KayKit, Rocketbox) live in the studio until the
+  owner picks one (licences: `astro/public/models/studio/LICENSES.md`).
+
 ## History
 
 | Version | Round | What changed | Result |
