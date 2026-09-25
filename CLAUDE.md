@@ -33,6 +33,8 @@ The two tracks are independent: website work does not block product work.
 | **PRD** | `PRD.md` | Product requirements document — start here |
 | Hardware v2 spec | `research/hardware-v2-spec.md` | Done |
 | PCB commission brief | `research/hardware-v2-pcb-commission-brief.md` | Ready to publish |
+| Hardware distribution strategy | [`research/vision/DISTRIBUTION.md`](research/vision/DISTRIBUTION.md) | Considered: self-order from JLCPCB, DIY, staged path to certified kits — not executed |
+| Owner's hardware brief | [`.plan/HW.md`](.plan/HW.md) | DIY-kit decision, test batch, open-source publication (Polish) |
 | Vision & strategy | `research/vision/` | Done |
 | Notification algorithm | `research/algorithm/` | Designed, not coded yet |
 | App architecture | `research/architecture/` | Designed, not coded yet — includes sensor-daemon |
