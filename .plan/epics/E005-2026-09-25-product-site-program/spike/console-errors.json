@@ -1,0 +1,22 @@
+[
+  {
+    "type": "warning",
+    "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+  },
+  {
+    "type": "warning",
+    "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+  },
+  {
+    "type": "warning",
+    "text": "using deprecated parameters for the initialization function; pass a single object instead"
+  },
+  {
+    "type": "warning",
+    "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+  },
+  {
+    "type": "warning",
+    "text": "[.WebGL-0x2bb40040e200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+  }
+]

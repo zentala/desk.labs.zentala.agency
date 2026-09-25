@@ -1,0 +1,16 @@
+/lab/desk-scene jitter probe (jitter-probe.mjs, Playwright + SwiftShader, 1200x800 dpr 1).
+Per rendered frame: main View scissor y minus (live canvas rect.bottom - live tracked rect.bottom).
+
+BEFORE fix (861bf96^, SceneCanvas resize debounce scroll 50 ms, no per-frame sync):
+idle 1.5 s                         frames=25 (16.5/s)  scissor-offset>1px: 0,  max 1px
+pointer sweep 60 moves @16ms       frames=84 (37.1/s)  scissor-offset>1px: 0,  max 1px
+wheel scroll 30 x 20px @16ms       frames=51 (27.8/s)  scissor-offset>1px: 28, max 220px
+  series: 40,60,60,60,100,120,120,120,160,160,180,180,180,200,220,20,20,40,40,40,80,95,95,95,95,95,95,95,1,1,...
+
+Intermediate (debounce scroll 0 only): scroll offset>1px 15 frames, max 20px (one frame late).
+
+AFTER fix (861bf96, SyncCanvasRect before views):
+idle 1.5 s                         frames=22 (14.6/s)  scissor-offset>1px: 0,  max 1px
+pointer sweep 60 moves @16ms       frames=84 (36.2/s)  scissor-offset>1px: 0,  max 1px
+wheel scroll 30 x 20px @16ms       frames=48 (28.3/s)  scissor-offset>1px: 0,  max 1px
+page errors: 0
