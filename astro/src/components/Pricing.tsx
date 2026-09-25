@@ -1,8 +1,6 @@
 /**
- * Pricing section — 3-tier product cards with Stripe checkout links,
- * pre-order counters fetched from /preorder-count.json, and total raised summary.
+ * Pricing section — 3-tier product cards with Stripe checkout links.
  */
-import { useState, useEffect } from 'react';
 import { trackEvent } from '../utils/analytics';
 import { PRICING, type TierKey } from '../data/pricing';
 
@@ -73,25 +71,7 @@ const tiers: Tier[] = [
   },
 ];
 
-interface PreorderCounts {
-  basic: number;
-  pro: number;
-  founder: number;
-}
-
 export default function Pricing() {
-  const [counts, setCounts] = useState<PreorderCounts>({ basic: 0, pro: 0, founder: 0 });
-
-  useEffect(() => {
-    fetch('/preorder-count.json')
-      .then((res) => res.json())
-      .then((data: PreorderCounts) => setCounts(data))
-      .catch(() => {});
-  }, []);
-
-  const totalRaised =
-    counts.basic * PRICING.basic.price + counts.pro * PRICING.pro.price + counts.founder * PRICING.founder.price;
-
   return (
     <section id="pricing" className="py-24 border-t border-gray-800/50">
       <div className="section-container">
@@ -105,15 +85,9 @@ export default function Pricing() {
 
         <div className="mt-16 grid gap-8 lg:grid-cols-3">
           {tiers.map((tier) => (
-            <TierCard
-              key={tier.key}
-              tier={tier}
-              orderCount={counts[tier.key as keyof PreorderCounts]}
-            />
+            <TierCard key={tier.key} tier={tier} />
           ))}
         </div>
-
-        <TotalRaised amount={totalRaised} />
 
         <p className="mt-8 text-center text-sm text-gray-500">
           All prices include sensor hardware + open source app.
@@ -124,25 +98,7 @@ export default function Pricing() {
   );
 }
 
-function TotalRaised({ amount }: { amount: number }) {
-  const formatted = amount.toLocaleString('en-US');
-  return (
-    <div className="mt-12 text-center">
-      <p className="text-2xl font-bold text-gray-100">
-        Total raised: <span className="text-brand-green">&euro;{formatted}</span>
-      </p>
-      <p className="mt-1 text-sm text-muted">
-        Every pre-order brings us closer to production
-      </p>
-    </div>
-  );
-}
-
-function TierCard({ tier, orderCount }: { tier: Tier; orderCount: number }) {
-  const progressPercent = tier.threshold
-    ? Math.min(100, Math.round((orderCount / tier.threshold) * 100))
-    : null;
-
+function TierCard({ tier }: { tier: Tier }) {
   return (
     <div
       className={`relative flex flex-col rounded-2xl border p-8 ${
@@ -178,31 +134,10 @@ function TierCard({ tier, orderCount }: { tier: Tier; orderCount: number }) {
         ))}
       </ul>
 
-      {/* Urgency elements */}
       {tier.urgencyLabel && (
         <p className="mb-3 text-xs font-medium text-amber-400">
           {tier.urgencyLabel}
         </p>
-      )}
-      {tier.threshold !== null && orderCount > 0 && (
-        <p className="mb-3 text-xs font-semibold text-brand-green">
-          Only {tier.threshold - orderCount} spots left
-        </p>
-      )}
-
-      {tier.threshold !== null && progressPercent !== null && (
-        <div className="mb-6">
-          <div className="flex justify-between text-xs text-muted mb-1">
-            <span>{orderCount} / {tier.threshold} pre-orders</span>
-            <span>{progressPercent}%</span>
-          </div>
-          <div className="h-2 rounded-full bg-dark-900">
-            <div
-              className="h-2 rounded-full bg-brand-green transition-all duration-500"
-              style={{ width: `${Math.max(2, progressPercent)}%` }}
-            />
-          </div>
-        </div>
       )}
       {tier.thresholdNote && (
         <p className="mb-6 text-xs text-muted">{tier.thresholdNote}</p>

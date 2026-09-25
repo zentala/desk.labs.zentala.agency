@@ -5,11 +5,8 @@ import Story from '../../components/Story.tsx';
 import HowItWorks from '../../components/HowItWorks.tsx';
 import Features from '../../components/Features.tsx';
 import Screenshots from '../../components/Screenshots.tsx';
-import SocialProof from '../../components/SocialProof.tsx';
 import ComparisonTable from '../../components/ComparisonTable.tsx';
 import Pricing from '../../components/Pricing.tsx';
-import ReferralProgram from '../../components/ReferralProgram.tsx';
-import SocialWall from '../../components/SocialWall.tsx';
 import FAQ from '../../components/FAQ.tsx';
 import Footer from '../../components/Footer.tsx';
 import WaitlistForm from '../../components/WaitlistForm.tsx';
@@ -56,44 +53,9 @@ import '../../styles/fonts.css';
   <!-- Plausible Analytics — privacy-first, no cookies, GDPR-compliant -->
   <script defer data-domain="lp.desk.labs.zentala.agency" src="https://plausible.io/js/script.js"></script>
 
-  <!-- Schema.org Product JSON-LD — Keep prices in sync with src/data/pricing.ts -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    "name": "zntlDesk — Sit/Stand Desk Sensor",
-    "description": "Open source desk sensor that tracks sitting and standing time and nudges you to move. Mounts under any height-adjustable desk.",
-    "brand": { "@type": "Brand", "name": "zntlDesk" },
-    "url": "https://lp.desk.labs.zentala.agency",
-    "image": "https://lp.desk.labs.zentala.agency/images/og-cover.png",
-    "offers": [
-      {
-        "@type": "Offer",
-        "name": "Basic Kit",
-        "price": "49.00",
-        "priceCurrency": "EUR",
-        "availability": "https://schema.org/PreOrder",
-        "url": "https://lp.desk.labs.zentala.agency/#pricing"
-      },
-      {
-        "@type": "Offer",
-        "name": "Pro Kit",
-        "price": "79.00",
-        "priceCurrency": "EUR",
-        "availability": "https://schema.org/PreOrder",
-        "url": "https://lp.desk.labs.zentala.agency/#pricing"
-      },
-      {
-        "@type": "Offer",
-        "name": "Founder's Edition",
-        "price": "149.00",
-        "priceCurrency": "EUR",
-        "availability": "https://schema.org/PreOrder",
-        "url": "https://lp.desk.labs.zentala.agency/#pricing"
-      }
-    ]
-  }
-  </script>
+  <!-- Schema.org Product JSON-LD removed (DESIGN.md §11/§13): a Product with
+       prices/PreOrder availability is a false rich-snippet claim for a
+       product that is not on sale. -->
 </head>
 <body>
   <Hero />
@@ -107,11 +69,8 @@ import '../../styles/fonts.css';
   <HowItWorks />
   <Features />
   <Screenshots />
-  <SocialProof />
   <ComparisonTable />
   <Pricing client:load />
-  <ReferralProgram client:load />
-  <SocialWall />
   <FAQ client:load />
   <Footer client:load />
   <StickyCTA client:load />
