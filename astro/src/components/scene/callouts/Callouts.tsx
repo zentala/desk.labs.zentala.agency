@@ -107,7 +107,9 @@ export function Callouts({ layout, visible, anchors, width, height }: CalloutsPr
     const dx = p.a.x - p.cx;
     const dy = p.a.y - p.cy;
     const len = Math.hypot(dx, dy) || 1;
-    return { ...p, edgeX: p.cx + (dx / len) * (r + 2), edgeY: p.cy + (dy / len) * (r + 2) };
+    // the label sits on the side the leader does not come from, so the line never crosses text
+    const labelAbove = dy > 0.35 * Math.abs(dx) && p.cy - r - 44 > 0;
+    return { ...p, labelAbove, edgeX: p.cx + (dx / len) * (r + 2), edgeY: p.cy + (dy / len) * (r + 2) };
   });
 
   return (
@@ -140,10 +142,11 @@ export function Callouts({ layout, visible, anchors, width, height }: CalloutsPr
               left: p.cx - r,
               top: p.cy - r,
               display: "flex",
-              flexDirection: "column",
+              flexDirection: p.labelAbove ? "column-reverse" : "column",
               alignItems: "center",
               gap: 6,
               width: CIRCLE_PX,
+              ...(p.labelAbove ? { top: "auto", bottom: height - (p.cy + r) } : {}),
             }}
           >
             <Inset id={p.spec.id} />

@@ -76,19 +76,17 @@ export function Sensor({ heightM, palette, monitorZ, breathe }: SensorProps) {
   return (
     <group>
       <group position={[SENSOR_X, boxY, SENSOR_Z]}>
-        <Block size={BOX} bevel="small" color={palette.pcb} />
+        <Block size={BOX} color={palette.pcb} />
         {/* copper pads on the two faces the camera sees: the "honest PCB" detail */}
         <Block
           size={[0.004, 0.016, 0.03]}
           position={[BOX[0] / 2 + 0.001, 0, 0]}
-          bevel="small"
           color={palette.copper}
           castShadow={false}
         />
         <Block
           size={[0.04, 0.016, 0.004]}
           position={[0, 0, BOX[2] / 2 + 0.001]}
-          bevel="small"
           color={palette.copper}
           castShadow={false}
         />
@@ -96,7 +94,6 @@ export function Sensor({ heightM, palette, monitorZ, breathe }: SensorProps) {
         <Block
           size={[0.012, 0.003, 0.012]}
           position={[0, -BOX[1] / 2 - 0.001, 0]}
-          bevel="small"
           color={palette.ink}
           castShadow={false}
         />

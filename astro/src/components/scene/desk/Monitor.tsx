@@ -38,8 +38,8 @@ export function Monitor({ heightM, state, heightCm, palette }: MonitorProps) {
 
   return (
     <group position={[0, 0, MONITOR.z]}>
-      <Block size={MONITOR.base} position={[0, baseY, 0]} bevel="small" color={palette.ink} />
-      <Block size={MONITOR.neck} position={[0, neckY, 0]} bevel="small" color={palette.ink} />
+      <Block size={MONITOR.base} position={[0, baseY, 0]} color={palette.ink} />
+      <Block size={MONITOR.neck} position={[0, neckY, 0]} color={palette.ink} />
       <group position={[0, bodyY, 0.02]}>
         <Block size={MONITOR.body} color={palette.ink} />
         <mesh position={[0, 0, MONITOR.body[2] / 2 + 0.001]}>

@@ -13,11 +13,14 @@ import { DESK } from "./dims";
 interface ColumnProps {
   x: number;
   underside: number;
-  color: string;
+  palette: ScenePalette;
 }
 
-/** One leg: foot + three nested stages, the bottom one thinnest. */
-function Column({ x, underside, color }: ColumnProps) {
+/** height of the dark band under each stage's mouth: the shadow the upper stage throws on the one below */
+const BAND_H = 0.012;
+
+/** One leg: foot + three nested stages, thinnest at the bottom, each its own tone, a shadow band under each mouth. */
+function Column({ x, underside, palette }: ColumnProps) {
   const z = DESK.columnZ;
   const { bottom, mid, top } = DESK.stage;
   const bottomLen = DESK.bottomStageTop - DESK.foot[1];
@@ -27,31 +30,14 @@ function Column({ x, underside, color }: ColumnProps) {
   const midLen = midTop - DESK.midStageBottom;
   return (
     <group position={[x, 0, z]}>
-      <Block size={DESK.foot} position={[0, DESK.foot[1] / 2, 0]} color={color} />
-      <Block
-        size={[bottom, bottomLen, bottom]}
-        position={[0, DESK.foot[1] + bottomLen / 2, 0]}
-        bevel="small"
-        color={color}
-      />
-      <Block
-        size={[mid, midLen, mid]}
-        position={[0, DESK.midStageBottom + midLen / 2, 0]}
-        bevel="small"
-        color={color}
-      />
-      <Block
-        size={[top, DESK.topStageLength, top]}
-        position={[0, topStageBottom + DESK.topStageLength / 2, 0]}
-        bevel="small"
-        color={color}
-      />
-      <Block
-        size={DESK.bracket}
-        position={[0, underside - DESK.bracket[1] / 2, 0]}
-        bevel="small"
-        color={color}
-      />
+      <Block size={DESK.foot} position={[0, DESK.foot[1] / 2, 0]} color={palette.stageBottom} />
+      <Block size={[bottom, bottomLen, bottom]} position={[0, DESK.foot[1] + bottomLen / 2, 0]} color={palette.stageBottom} />
+      <Block size={[mid, midLen, mid]} position={[0, DESK.midStageBottom + midLen / 2, 0]} color={palette.stageMid} />
+      <Block size={[top, DESK.topStageLength, top]} position={[0, topStageBottom + DESK.topStageLength / 2, 0]} color={palette.stageTop} />
+      {/* shadow bands: a hair wider than the stage below, just under the mouth of the stage above */}
+      <Block size={[bottom + 0.002, BAND_H, bottom + 0.002]} position={[0, DESK.midStageBottom - BAND_H / 2, 0]} color={palette.ink} castShadow={false} />
+      <Block size={[mid + 0.002, BAND_H, mid + 0.002]} position={[0, topStageBottom - BAND_H / 2, 0]} color={palette.ink} castShadow={false} />
+      <Block size={DESK.bracket} position={[0, underside - DESK.bracket[1] / 2, 0]} color={palette.stageTop} />
     </group>
   );
 }
@@ -74,13 +60,12 @@ function Paddle({ underside, palette }: { underside: number; palette: ScenePalet
   );
   return (
     <group>
-      <Block size={[0.1, 0.016, 0.07]} position={[x, underside - 0.008, bodyZ]} bevel="small" color={palette.frame} />
+      <Block size={[0.1, 0.016, 0.07]} position={[x, underside - 0.008, bodyZ]} color={palette.frame} />
       {[-0.036, -0.021, -0.006, 0.009].map((dx) => (
         <Block
           key={dx}
           size={[0.012, 0.005, 0.014]}
           position={[x + dx, buttonY, buttonZ]}
-          bevel="small"
           color={palette.line}
           castShadow={false}
         />
@@ -88,7 +73,6 @@ function Paddle({ underside, palette }: { underside: number; palette: ScenePalet
       <Block
         size={[0.014, 0.006, 0.026]}
         position={[x + 0.034, buttonY, buttonZ]}
-        bevel="small"
         color={palette.line}
         castShadow={false}
       />
@@ -111,13 +95,12 @@ export function Desk({ heightM, palette }: DeskProps) {
         position={[0, heightM - DESK.topThickness / 2, 0]}
         color={palette.deskTop}
       />
-      <Column x={-DESK.columnX} underside={underside} color={palette.frame} />
-      <Column x={DESK.columnX} underside={underside} color={palette.frame} />
+      <Column x={-DESK.columnX} underside={underside} palette={palette} />
+      <Column x={DESK.columnX} underside={underside} palette={palette} />
       {/* slim crossbar flush under the top, hidden from above (owner round 2) */}
       <Block
         size={[DESK.columnX * 2 - DESK.bracket[0], DESK.bracket[1], 0.04]}
         position={[0, underside - DESK.bracket[1] / 2, DESK.columnZ]}
-        bevel="small"
         color={palette.frame}
       />
       <Paddle underside={underside} palette={palette} />
