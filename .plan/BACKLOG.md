@@ -161,3 +161,11 @@ product.
   (Importance: High — silently wrong on every real light-mode visitor; Points: 3)
 
 - [ ] **`astro/src/pages/updates/rss.xml.ts` fails `tsc --noEmit`** — `Parameter 'context' implicitly has an 'any' type` (line 3); the repo has no typecheck script, so nobody sees it, but it makes `npx tsc --noEmit -p astro` permanently red and hides new errors. Found during W3-T4 (2026-09-25). Fix: type the param as `APIContext` from `astro`. (Importance: Low, Points: 1)
+
+## E005 scene studio follow-ups (2026-09-26)
+
+- Callout ring residual of 2.9–3.6 px: the callout layout lags the view by one frame. `check:jitter` uses a 4 px ring limit and may flake. Importance: Medium · Points: 3
+- React #418 hydration mismatch in DeskScene under reduced motion. The initial state depends on `prefersReducedMotion`; also present on dev. Importance: Medium · Points: 2
+- drei `Outlines` has `screenspace` inverted; workaround in `studio/PersonParam.tsx`. Report upstream. Importance: Low · Points: 1
+- Product decision: should the homepage `HowItWorksScene` use the `beatAt(u)` scroll story instead of button mode? Importance: Medium · Points: ?
+- `public/models/studio` is ~14.6 MB (UBC PNG textures). Decimate or convert to WebP before any public use. Importance: Medium · Points: 2
