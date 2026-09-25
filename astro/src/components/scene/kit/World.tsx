@@ -73,8 +73,23 @@ export function Slab({ palette }: { palette: ScenePalette }) {
 
 /** Fits `CAMERA.frame` at the target in every aspect ratio and adds a ±4° pointer parallax. */
 export function Lens({ parallax, lift, portrait }: { parallax: boolean; lift: number; portrait: boolean }) {
-  const { size, pointer, invalidate } = useThree();
+  const { size, invalidate } = useThree();
   const cam = useRef<THREE.PerspectiveCamera>(null);
+  // Viewport-normalised pointer, not R3F's: drei's View recomputes `pointer` from the tracked
+  // element's LAST-frame rect, so while the page scrolls under a still mouse (Chrome fires
+  // synthetic moves) the pitch flipped between two values every frame and the camera, the
+  // callout anchors and their rings shook by ~25 px (scripts/check-scroll-jitter.mjs).
+  const viewPointer = useRef({ x: 0, y: 0 });
+  useEffect(() => {
+    if (!parallax) return;
+    const onMove = (e: PointerEvent) => {
+      viewPointer.current.x = (e.clientX / window.innerWidth) * 2 - 1;
+      viewPointer.current.y = 1 - (e.clientY / window.innerHeight) * 2;
+      invalidate();
+    };
+    window.addEventListener("pointermove", onMove, { passive: true });
+    return () => window.removeEventListener("pointermove", onMove);
+  }, [parallax, invalidate]);
   const target = useRef(new THREE.Vector3(...CAMERA.target));
   const base = useRef(new THREE.Vector3(...CAMERA.position));
   target.current.y = CAMERA.target[1] + CAMERA.maxLift * Math.min(1, Math.max(0, lift));
@@ -104,8 +119,8 @@ export function Lens({ parallax, lift, portrait }: { parallax: boolean; lift: nu
       c.updateProjectionMatrix();
     }
     if (!parallax) return;
-    const yaw = THREE.MathUtils.degToRad(CAMERA.parallaxDeg) * -pointer.x;
-    const pitch = THREE.MathUtils.degToRad(CAMERA.parallaxDeg * 0.4) * -pointer.y;
+    const yaw = THREE.MathUtils.degToRad(CAMERA.parallaxDeg) * -viewPointer.current.x;
+    const pitch = THREE.MathUtils.degToRad(CAMERA.parallaxDeg * 0.4) * -viewPointer.current.y;
     const offset = base.current.clone().sub(target.current);
     offset.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
     const right = new THREE.Vector3().crossVectors(offset, new THREE.Vector3(0, 1, 0)).normalize();
