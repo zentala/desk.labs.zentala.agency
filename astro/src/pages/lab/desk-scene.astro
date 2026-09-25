@@ -1,4 +1,5 @@
 ---
+import '../../styles/fonts.css';
 import '../../styles/global.css';
 import DeskScene from '../../components/scene/DeskScene';
 ---
@@ -10,17 +11,18 @@ import DeskScene from '../../components/scene/DeskScene';
     <meta name="robots" content="noindex, nofollow" />
     <title>Lab: DeskScene — Open Smart Desk</title>
   </head>
-  <body class="bg-bg text-ink" style="min-height: 100vh; padding: 48px 24px;">
-    <main style="max-width: 720px; margin: 0 auto;">
+  <body class="bg-bg text-ink" style="min-height: 100vh; padding: 48px 24px 30vh;">
+    <main style="max-width: 960px; margin: 0 auto;">
       <p style="font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ink-muted);">
         Lab — internal preview, not indexed
       </p>
       <h1 style="font-family: var(--font-display); font-size: 2.25rem; margin: 8px 0 16px;">
-        DeskScene v1
+        DeskScene v2
       </h1>
       <p style="color: var(--color-ink-muted); max-width: 60ch; margin-bottom: 24px;">
-        Procedural, flat-shaded hero scene. Click the buttons below the scene to switch state, or
-        set your OS to reduced motion to see the instant-state fallback used elsewhere on the site.
+        Procedural, chamfered-clay hero scene drawn with the scene kit (DESIGN.md §8). Scroll: the desk
+        starts seated and rises as you scroll through this section. The buttons scroll for you; under
+        reduced motion the scene is static and the buttons switch states directly.
       </p>
       <noscript>
         <img
@@ -32,7 +34,7 @@ import DeskScene from '../../components/scene/DeskScene';
         />
       </noscript>
       <div id="desk-scene-root">
-        <DeskScene client:visible autoPlay={false} />
+        <DeskScene client:visible scroll />
       </div>
     </main>
   </body>
