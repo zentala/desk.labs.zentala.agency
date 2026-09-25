@@ -1,76 +1,291 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 @plugin "@tailwindcss/typography";
+/* Font-face declarations live in ./fonts.css, imported separately by each
+   page/layout alongside this file (see that file for why). */
 
-/* Tailwind v4 theme configuration via CSS */
+/* Tailwind v4 theme configuration via CSS (DESIGN.md §0, §12.2).
+   Light values are the default custom-property values; dark values are
+   applied in the `prefers-color-scheme: dark` override below, so utilities
+   such as `bg-bg text-ink border-line` work in both themes without a
+   `dark:` prefix. */
 @theme {
-  --color-dark-900: #0a0a0f;
-  --color-dark-800: #111118;
-  --color-dark-700: #1a1a24;
-  --color-dark-600: #23232f;
-  --color-dark-500: #2d2d3a;
+  /* -- Colour: bg/surface/ink/line/brand/teal (DESIGN.md §0) -- */
+  --color-bg: #FAF7F2;
+  --color-surface: #FFFFFF;
+  --color-surface-2: #F1ECE3;
+  --color-line: #E4DED4;
+  --color-line-strong: #89837A;
+  --color-ink: #1F2430;
+  --color-ink-muted: #5B6270;
+  --color-brand: #E4572E;
+  --color-brand-strong: #C9461F;
+  --color-brand-text: #B8401D;
+  --color-on-brand: #FFFFFF;
+  --color-teal: #1C7C74;
+  --color-teal-text: #176B64;
+  --color-focus: #1C7C74;
 
-  --color-brand-green: #22c55e;
-  --color-brand-green-dark: #16a34a;
-  --color-brand-green-light: #4ade80;
+  /* -- State: fill / tint / text triples (DESIGN.md §0) -- */
+  --color-state-sitting-fill: #F5C451;
+  --color-state-sitting-tint: #FBECC4;
+  --color-state-sitting-text: #8A5A00;
+  --color-state-standing-fill: #4CC77A;
+  --color-state-standing-tint: #D9F2E2;
+  --color-state-standing-text: #1F7A44;
+  --color-state-walking-fill: #8CCBEF;
+  --color-state-walking-tint: #DCEEF9;
+  --color-state-walking-text: #1B5E8A;
+  --color-state-away-fill: #B8C2D1;
+  --color-state-away-tint: #E6EAF0;
+  --color-state-away-text: #5A6A80;
+  --color-state-nudge-fill: #E4572E;
+  --color-state-nudge-tint: #FBE3DA;
+  --color-state-nudge-text: #B8401D;
+  --color-state-points-fill: #FFC83D;
+  --color-state-points-tint: #FFF1C2;
+  --color-state-points-text: #8A6200;
+  --color-state-snoozed-fill: #C7B9E8;
+  --color-state-snoozed-tint: #EEE9F8;
+  --color-state-snoozed-text: #5B4A8A;
 
-  --color-muted: #94a3b8;
+  /* -- Material: 3D-only, never used for text (DESIGN.md §0, §8) -- */
+  --color-material-desk-top: #E8D9BF;
+  --color-material-skin: #F0B7A0;
+  --color-material-sweater: #2F4A9C;
+  --color-material-pcb: #0F6B3A;
+  --color-material-copper: #D9B26F;
+  --color-material-screen: #FFFFFF;
 
-  --shadow-glow: 0 0 40px rgba(34, 197, 94, 0.15);
-  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3);
-  --color-report-surface: #111118;
-  --color-report-muted: #94a3b8;
-  --color-report-divider: #2d2d3a;
-  --color-status-archived: #94a3b8;
-  --color-status-in-use: #4ade80;
-  --color-status-in-review: #fbbf24;
-  --color-status-in-design: #c084fc;
-  --color-status-planned: #60a5fa;
+  /* -- Font families (DESIGN.md §0, §4) -- */
+  --font-display: 'Bricolage Grotesque Variable', 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter Variable', 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* -- Type scale (DESIGN.md §0) -- */
+  --text-caption: 0.75rem;
+  --text-small: 0.875rem;
+  --text-body: 1rem;
+  --text-lead: 1.125rem;
+  --text-h4: 1.375rem;
+  --text-h3: 1.75rem;
+  --text-h2: 2.25rem;
+  --text-h1: 3rem;
+  --text-hero: clamp(2.5rem, 6vw, 5rem);
+
+  /* -- Space (DESIGN.md §0, §5) -- */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+  --spacing-24: 96px;
+  --spacing-32: 128px;
+  --spacing-section: 96px;
+  --spacing-section-lg: 128px;
+  --spacing-gutter: 24px;
+  --spacing-gutter-lg: 48px;
+  --spacing-container: 1200px;
+  --spacing-container-prose: 1024px;
+
+  /* -- Radius (DESIGN.md §0, §5) -- */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+
+  /* -- Elevation / shadow (DESIGN.md §0) -- */
+  --shadow-1: 0 1px 2px rgba(31, 36, 48, .06), 0 0 0 1px #E4DED4;
+  --shadow-2: 0 12px 32px -12px rgba(31, 36, 48, .25);
+  --shadow-beam: 0 0 4px #E4572E;
+
+  /* -- Motion (DESIGN.md §0, §6) -- */
+  --duration-micro: 120ms;
+  --duration-standard: 200ms;
+  --duration-toast-in: 320ms;
+  --duration-toast-out: 200ms;
+  --duration-scene: 600ms;
+  --ease-enter: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* -- Breakpoints (DESIGN.md §0) -- these mirror Tailwind's defaults but
+     are declared explicitly so they stay traceable to the token source. */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+
+  /* -- v1 -> v2 aliases (DESIGN.md §13) --
+     Kept so pages still using the v1 names keep rendering during migration.
+     Remove once every consumer has moved to the v2 names above. */
+  --color-dark-900: #14171C;
+  --color-dark-800: #1E2229;
+  --color-dark-700: #272C35;
+  --color-dark-600: #2C313A;
+  --color-dark-500: #6B7280;
+  --color-brand-green: #C9461F;
+  --color-brand-green-dark: #B8401D;
+  --color-brand-green-light: #E4572E;
+  --color-muted: #5B6270;
+  --shadow-glow: var(--shadow-beam);
+  --shadow-card: var(--shadow-1);
+  --color-report-surface: #FFFFFF;
+  --color-report-muted: #5B6270;
+  --color-report-divider: #E4DED4;
+  --color-status-in-use: #1F7A44;
+  --color-status-in-review: #8A5A00;
+  --color-status-planned: #1B5E8A;
+  --color-status-in-design: #5B4A8A;
+  --color-status-archived: #5A6A80;
+}
+
+/* Dark theme: override the same custom properties by OS preference
+   (DESIGN.md §2, §12.2). A manual toggle is not implemented (open question,
+   DESIGN.md end of file); this always follows `prefers-color-scheme`. */
+@media (prefers-color-scheme: dark) {
+  @theme {
+    --color-bg: #14171C;
+    --color-surface: #1E2229;
+    --color-surface-2: #272C35;
+    --color-line: #2C313A;
+    --color-line-strong: #6B7280;
+    --color-ink: #EDEAE3;
+    --color-ink-muted: #A3A9B5;
+    --color-brand: #FF7A55;
+    --color-brand-strong: #FF7A55;
+    --color-brand-text: #FF7A55;
+    --color-on-brand: #1F2430;
+    --color-teal: #3FB5A9;
+    --color-teal-text: #3FB5A9;
+    --color-focus: #3FB5A9;
+
+    --color-state-sitting-fill: #F2B33D;
+    --color-state-sitting-tint: #3D3418;
+    --color-state-sitting-text: #F2B33D;
+    --color-state-standing-fill: #4CC77A;
+    --color-state-standing-tint: #183A28;
+    --color-state-standing-text: #4CC77A;
+    --color-state-walking-fill: #6FB8E8;
+    --color-state-walking-tint: #1A3346;
+    --color-state-walking-text: #6FB8E8;
+    --color-state-away-fill: #8C9AAE;
+    --color-state-away-tint: #2A3140;
+    --color-state-away-text: #8C9AAE;
+    --color-state-nudge-fill: #FF7A55;
+    --color-state-nudge-tint: #43241A;
+    --color-state-nudge-text: #FF7A55;
+    --color-state-points-fill: #FFC83D;
+    --color-state-points-tint: #3F3416;
+    --color-state-points-text: #FFC83D;
+    --color-state-snoozed-fill: #A996E0;
+    --color-state-snoozed-tint: #2E2843;
+    --color-state-snoozed-text: #A996E0;
+
+    --color-material-desk-top: #CDBB9E;
+
+    --shadow-1: 0 0 0 1px #2C313A;
+    --shadow-2: 0 0 0 1px #2C313A, 0 12px 32px -12px rgba(0, 0, 0, .6);
+    --shadow-beam: 0 0 6px #FF7A55;
+
+    /* v1 aliases stay pointed at the same dark palette (dark is now the
+       `prefers-color-scheme: dark` theme, not the only theme). */
+    --color-dark-900: #14171C;
+    --color-dark-800: #1E2229;
+    --color-dark-700: #272C35;
+    --color-dark-600: #2C313A;
+    --color-dark-500: #6B7280;
+    --color-brand-green: #FF7A55;
+    --color-brand-green-dark: #FF7A55;
+    --color-brand-green-light: #FF7A55;
+    --color-muted: #A3A9B5;
+    --color-report-surface: #1E2229;
+    --color-report-muted: #A3A9B5;
+    --color-report-divider: #2C313A;
+    --color-status-in-use: #4CC77A;
+    --color-status-in-review: #F2B33D;
+    --color-status-planned: #6FB8E8;
+    --color-status-in-design: #A996E0;
+    --color-status-archived: #8C9AAE;
+  }
 }
 
 @layer base {
   html {
-    background-color: var(--color-dark-900);
-    color: theme(colors.gray.100);
+    background-color: var(--color-bg);
+    color: var(--color-ink);
     scroll-behavior: smooth;
   }
 
   body {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
   }
 
   h1, h2, h3, h4 {
-    font-family: 'Space Grotesk', sans-serif;
-    letter-spacing: -0.025em;
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
     font-weight: 700;
   }
 
   p {
-    line-height: 1.625;
+    line-height: 1.55;
+  }
+
+  /* Reduced motion (DESIGN.md §6): global guard, components do not opt out. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-full
-      bg-brand-green px-8 py-4 text-base font-semibold text-dark-900
-      shadow-glow transition-all duration-200
-      hover:-translate-y-0.5 hover:bg-brand-green-light hover:shadow-lg;
+    @apply inline-flex items-center justify-center rounded-md
+      bg-brand-strong px-8 py-4 text-base font-semibold text-on-brand
+      transition-all duration-200
+      hover:-translate-y-0.5 hover:bg-brand hover:shadow-1;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-full
-      border border-gray-600 px-8 py-4 text-base font-semibold text-gray-300
+    @apply inline-flex items-center justify-center rounded-md
+      border border-line-strong px-8 py-4 text-base font-semibold text-ink
       transition-all duration-200
-      hover:border-gray-400 hover:text-white;
+      hover:border-teal hover:text-teal-text;
   }
 
-  .section-container {
-    @apply mx-auto max-w-6xl px-4 sm:px-6 lg:px-8;
+  @media (prefers-reduced-motion: reduce) {
+    .btn-primary, .btn-secondary {
+      @apply hover:translate-y-0;
+    }
   }
+
+  .section-container { @apply mx-auto max-w-6xl px-4 sm:px-6 lg:px-8; }
   .report-container { @apply mx-auto max-w-5xl px-5 sm:px-8; }
-  .report-link { @apply text-brand-green underline decoration-brand-green/40 underline-offset-4 transition hover:text-brand-green-light; }
-  .report-divider { @apply border-t border-report-divider; }
-  .focus-ring { @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900; }
+  .report-link { @apply text-brand-text underline decoration-brand-text/40 underline-offset-4 transition hover:text-brand; }
+  .report-divider { @apply border-t border-line; }
+
+  /* Global visible focus ring (DESIGN.md §9): 2px `focus` ring, 2px offset,
+     on every interactive element. */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-bg;
+  }
+}
+
+/* Global focus fallback (DESIGN.md §9): covers interactive elements that
+   have not yet opted into the `.focus-ring` component class. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }

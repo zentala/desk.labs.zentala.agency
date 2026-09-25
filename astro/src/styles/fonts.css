@@ -1,0 +1,10 @@
+/* Self-hosted fonts (DESIGN.md §4) — no Google Fonts CDN request.
+   See astro/public/fonts/LICENSES.md for licence details (OFL 1.1).
+   Imported as its own JS-side entry (not nested inside global.css's
+   `@import "tailwindcss"` chain) because Vite fails to resolve the
+   fontsource packages' relative woff2 URLs when imported from within
+   another package's CSS @import chain. */
+@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/inter";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
