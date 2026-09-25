@@ -234,37 +234,153 @@ and the rule that unknown evidence renders as an explicit open item. They are re
 match exists (in-use → standing, in-review → sitting, planned → walking, in-design → snoozed, archived → away).
 Build-log pages MUST NOT import LaunchCTA email mode, StatCard marketing variants, or any 3D island.
 
-## 8. 3D art direction (three.js / react-three-fiber)
+## 8. 3D illustration style guide (three.js / react-three-fiber)
 
-**Family rule:** every scene is the same room, same camera family, same six materials, same character rig.
-Change the pose and the toast, never the world.
+**One world, many poses.** Every scene on this site is the same small room, drawn in the same
+chunky-clay language, lit by the same lamp, seen through the same lens. A scene changes the pose
+of the person, the height of the desk and the words on the screen. It never changes the world.
+The code for the world is `astro/src/components/scene/kit/`; scenes compose it and add nothing
+that the kit does not already know how to draw.
 
-- **Stack:** `three` + `@react-three/fiber` v9 (React 19) + `drei` where it saves code; procedural geometry
-  for desk, sensor, monitor, stool, cable; CC0/CC-BY character with recorded licence and source in
-  `astro/public/models/LICENSES.md`. Copy patterns from `meblarz` `scene-viewport`, not the package (E009).
-- **Materials:** `MeshLambertMaterial`, `flatShading: true`, vertex colours, zero image textures.
-  Mapping: floor/wall → `bg`; desk top → `material.desk-top`; desk frame → `teal`; stool seat → `state.sitting.fill`;
-  character → `material.skin` + `material.sweater` (a sweater, not a suit); monitor → `ink`; screen → `material.screen`;
-  PCB → `material.pcb` + `material.copper`; laser → `brand` emissive with `elevation.beam`. Dark mode swaps `bg`,
-  `desk-top` and the beam only. Scene code reads these from one `scene-palette.ts` that imports the token values;
-  no hex in scene files.
-- **Poly budget:** desk ≤ 800 tris, stool ≤ 200, monitor ≤ 300, sensor ≤ 150, character ≤ 1500; hero scene ≤ 4000
-  tris, ≤ 6 draw calls; 60 fps on integrated GPU; `dpr` capped at 1.5.
-- **Lighting:** one `HemisphereLight` (sky `#FFFFFF`, ground `line`, 0.9) + one `DirectionalLight` key from
-  upper-left-front (0.7, 1024 shadow map, only character and desk cast). No point lights except the laser emissive.
-- **Camera:** 35 mm perspective, eye height, 3/4 view from front-left, no dutch angle. Hero: orbit ±6° on pointer,
-  none on touch. Section scenes: fixed lens, framing changes only.
-- **Character:** genderless, ~7 heads tall, two dot eyes, hoodie/sweater, socks. Rig: sit, stand-up (0.8 s),
-  walk-away, jumping jacks (1.2 s loop), stretch. Chunky keyframes with `steps(12)` feel.
-- **Laser:** thin cylinder from sensor to floor, coral dot on the floor, floating mono readout of real heights
-  (e.g. 72 cm / 112 cm). The beam is the product's proof; it is in every scene, even the empty-desk one.
-- **Scene family (E009):** hero (sit → toast → stand, points +1), how-it-knows triptych, the kit exploded,
-  the not-a-nag 8-hour timeline (amber/green/sky/slate segments, three nudge marks, silence after the third),
-  away = empty stool, walk-away footer loop, jumping-jacks easter egg. No "streak" scene (the app has no streaks).
-- **Delivery:** every scene is an Astro island with `client:visible`, dynamic-imported so `three` is its own chunk
-  and never enters the shared bundle. Each scene ships a static **WebP render of the same scene** (`<img>` with alt)
-  as the no-JS/`reduced-motion`/pre-hydration fallback, rendered headless from the same code, 2× and 1× sizes,
-  `loading="lazy"` except the hero (eager, it is the LCP). Build-log, blog and `/why-stand` load no 3D.
+### 8.1 Art direction: "chamfered clay"
+
+- **Low-poly with soft corners.** Every solid is a box or a low-segment cylinder with a
+  *bevelled* edge (`kit/style.ts` → `BEVEL.furniture` 8 mm, `BEVEL.small` 3 mm, `BEVEL.body`
+  20 mm). Bevels are what make the light catch an edge; sharp boxes look like placeholders,
+  fully rounded capsules look like toys. The bevel radius is a kit constant, never per mesh.
+- **Flat shading, one matte finish.** `MeshLambertMaterial`, `flatShading: true`, no image
+  textures except the monitor screen. Facets are visible on purpose; the bevel facets are the
+  "brush strokes" of the style. No metalness, no roughness maps, no reflections (§11).
+- **Real proportions, one simplification.** Objects are modelled at true scale in metres
+  (desk 120 × 60 cm, top 3.5 cm thick, monitor 34" ultrawide, person 1.75 m). The only
+  exaggeration allowed is *fewer parts*, never *bigger parts*. A believable silhouette at 64 px
+  beats detail.
+- **One sharp thing.** The coral beam (and its floor dot) is the only saturated, only emissive,
+  only glowing thing in a scene. Everything else is tone-on-tone from the palette below.
+- **Nothing unexplained.** Every prop must be recognisable at hero size without a label: a mug
+  with a handle, a closed notebook, a keyboard with a key plate. If it needs explaining, delete it.
+
+### 8.2 Palette → material mapping
+
+`scenePalette.ts` is the only file with hex values; it mirrors §0. Materials:
+
+| Thing | Token | Finish |
+|---|---|---|
+| Stage slab (floor island) | light `surface-2`, dark `line-strong` (a charcoal floor under the lamp goes black) | matte |
+| Rug on the slab | light `line`, dark `#5B6270` (light `ink-muted` value) | matte |
+| Desk top | `material.desk-top` | matte |
+| Desk frame: feet, all three column stages, brackets, paddle body | `teal` | matte |
+| Sensor box / sensor trim | `material.pcb` / `material.copper` | matte |
+| Beam, floor dot | `brand` | glow (`MeshBasicMaterial`, `toneMapped: false`) |
+| Monitor body, stand, keyboard, mouse, chair base and column, cables | `ink` | matte |
+| Keyboard key plate, mouse top | `ink-muted` | matte |
+| Screen | `material.screen` + CanvasTexture | unlit (`MeshBasicMaterial`) |
+| Chair seat and back | `state.sitting.fill` | matte |
+| Person silhouette | light `material.sweater`, dark `state.away.fill` | ghost (opacity 0.55; depth pre-pass + `EqualDepth` colour pass so limbs never double-blend) |
+| Mug | `brand` | matte (the one warm prop; small enough not to compete with the beam) |
+| Notebook | `material.sweater` | matte |
+
+Dark mode swaps `bg`, slab, rug, `line`, ghost, `desk-top` and `brand` only (`useScenePalette()`);
+everything else is theme-independent so the world stays the same room.
+
+### 8.3 Light
+
+One lamp, one sky, one floor. `kit/Stage.tsx` → `LightRig`:
+
+- `HemisphereLight` sky `#FFF4E2` (warm paper glow), ground `line`, intensity 1.35.
+- One `DirectionalLight` key from upper-left-front `(-2.5, 4.5, 3)`, intensity 1.3, warm
+  `#FFEFD8`, `castShadow`, 2048 map, PCF-soft, bias -0.0005. Only the desk, monitor, chair,
+  person and props cast.
+- `drei/ContactShadows` on the slab: opacity 0.35, blur 2.4, resolution 512, far 1.8. This is
+  the "ambient occlusion" of the style — soft grounding under every object. No SSAO, no
+  postprocessing chain (measured cost ≈ +60 kB gzip; not worth it for a lambert scene).
+- Renderer: `antialias: true`, `NeutralToneMapping` (ACES muddied the paper and the teal),
+  exposure 1.0, `SRGBColorSpace`,
+  `dpr` `[1, 2]` (capped by the device; the screen texture is always drawn at ≥ 2× regardless).
+
+### 8.4 Camera and framing
+
+- **Lens:** `kit/Stage.tsx` fits a 2.1 × 1.95 m frame at the target in every aspect ratio
+  (≈ 34° vertical at 16:10, ≈ 45° in a 4:5 portrait), so the chair, the person and the beam
+  are always in the picture and a phone gets a tighter, taller crop rather than a tiny desk.
+- **Viewpoint:** front-right three-quarter (~53° off the desk's front axis), eye height.
+  Hero: position `(2.7, 1.45, 2.0)`, looking at `(0.15, 0.75, 0.15)`; the target rises up to
+  20 cm with the person (`lift`), so a standing head keeps headroom and a seated frame is not
+  top-heavy. The camera sees the right side of the desk, so the sensor (back-right corner),
+  the paddle (front-right), the chair and the person beside the desk are all in view.
+- **Parallax:** ±4° orbit on pointer move, none on touch, none under reduced motion.
+- **Stage:** the scene stands on a bevelled slab 3.2 × 2.6 m whose far edge is in frame (an
+  island) and whose near edge spills out of it; outside the slab the canvas is transparent so
+  the page colour is the horizon. No walls, no sky dome, no fog.
+- Section scenes reuse the same lens; they may move the target and distance, never the height
+  or the side. No dutch angles, no top-down, no fisheye.
+
+### 8.5 The people
+
+A person is a **ghost**: a semi-transparent sweater-blue silhouette built from the same
+bevelled blocks (`kit/Person.tsx`). It says "someone is here" without a face to judge.
+
+- Rig: head (low-poly sphere), torso, two upper arms, two forearms, two thighs, two shins, two
+  feet. Joints are nested groups; poses are joint angles in `kit/poses.ts`
+  (`sitting`, `standing`, later `walking`, `jumpingJacks`, `stretch`).
+- Proportions: 1.75 m, ~7 heads, torso 34 × 55 × 20 cm, thigh 44 cm, shin 42 cm.
+- Poses blend by a single `t` (0..1) with the `motion.easing.enter` curve; sit → stand is a
+  hip rise plus a 10 cm step toward the desk. Chunky is fine, floaty is not: feet stay on the
+  floor at both ends of every blend.
+- No eyes, no hands, no clothing detail. The ghost is opaque enough (0.55) to read as a body
+  and transparent enough that the chair and desk behind it stay legible.
+
+### 8.6 Props and product parts
+
+- **Desk frame (owner-verified):** T-feet on the floor; three nested telescopic stages per
+  column, *thinnest at the bottom*, each stage above 14 mm wider than the one below; two flat
+  side brackets under the top plus a slim crossbar flush under the top (never a visible tube).
+  The desk's own paddle (4 memory buttons + up/down) sits under the front-right edge and its
+  cable goes to the right column — it is the desk's system, not ours.
+- **Sensor:** a 6 × 3 × 4.5 cm PCB-green box clamped to the *back-right* side edge of the top,
+  beam straight down to the floor outside the foot's footprint. One thin cable from the sensor
+  along the back edge into the all-in-one monitor. Two cables, two systems, visibly separate.
+- **Monitor:** one 34" ultrawide all-in-one with rounded corners on a slim neck. The screen is
+  the app: it shows the state readout (`Sitting · 72 cm` / `Standing · 112 cm`), today's
+  posture timeline and the nudge or confirmation toast. Nothing about state floats in 3D.
+- Keyboard, mouse, mug, notebook: the whole prop list. Add a prop only if a scene needs it to
+  tell its story, and add it to the kit so every scene can use it.
+
+### 8.7 Motion
+
+- Desk travel 72 → 112 cm over `motion.duration.scene` (600 ms) with `easing.enter`; the screen
+  readout ticks with the height.
+- Scroll-driven scenes map page scroll to the same `t`; they never hijack scroll speed.
+- Beam opacity breathes 0.85 → 1 over 2 s. Nothing else idles.
+- `prefers-reduced-motion`: no tween (states snap), no parallax, no breathing, scroll-driven
+  scenes fall back to buttons.
+
+### 8.8 Budgets and delivery
+
+- ≤ 25 k triangles and ≤ 90 draw calls per scene (bevels cost triangles; they are the style).
+  60 fps on an integrated GPU at `dpr` 2 is the acceptance test, not a triangle count.
+- Every scene: Astro island, `client:visible`, dynamic import so `three` is its own chunk
+  (hero chunk ≈ 260 kB gzip; the kit adds < 10 kB). Ships a WebP render of the same scene as the
+  no-JS / pre-hydration fallback, rendered headless from the same code.
+- Screen textures: canvas drawn at 2× the on-screen texel density, `anisotropy` = device max,
+  redrawn only when content changes (`frameloop="demand"`).
+
+### 8.9 Do / don't
+
+| Do | Don't |
+|---|---|
+| bevel every box with the kit radius | mix sharp boxes and rounded boxes in one scene |
+| true metric proportions | oversized "hero" monitors or tiny desks |
+| one warm lamp + contact shadows | point lights, rim lights, bloom, SSAO |
+| ghost person, sweater blue | skin tones, faces, stock characters |
+| show state on the screen | floating chips, 3D text, labels in space |
+| the beam is the only glow | glowing edges, emissive props |
+| props you can name | cones, domes, cylinders "for warmth" |
+| the same camera side in every scene | orbiting to hide a weak angle |
+
+Scene family (E009): hero (sit → toast → stand), how-it-knows triptych, the kit exploded, the
+not-a-nag timeline, away = empty chair, walk-away footer loop, jumping-jacks easter egg. No
+"streak" scene (the app has no streaks).
 
 ## 9. Accessibility
 
@@ -340,7 +456,8 @@ Google Fonts CDN · hex literals in components · `<div onClick>` buttons · hov
 3. Use utilities generated from tokens (`bg-surface`, `text-ink-muted`, `rounded-md`, `shadow-1`). Never `bg-[#…]`.
    Shared primitives (`.btn-primary`, `.btn-secondary`, `.focus-ring`, `.section-container`, `.report-container`)
    stay in `@layer components`; extend them, do not re-implement inline.
-4. 3D code reads colours from `astro/src/scenes/scene-palette.ts`, which imports the same values. No hex in scenes.
+4. 3D code reads colours from `astro/src/components/scene/scenePalette.ts`, which mirrors the same values, and draws
+   with the kit in `astro/src/components/scene/kit/` (§8). No hex in scene files, no geometry outside the kit language.
 5. New component only if two real consumers exist or an accessibility contract needs it. Prefer native HTML.
 6. Before you claim a colour pair is accessible, compute it (§9 method); do not eyeball.
 7. Do not add: a font, an accent colour, a shadow level, a radius, an animation library, or a UI kit
