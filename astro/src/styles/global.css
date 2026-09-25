@@ -144,9 +144,14 @@
 
 /* Dark theme: override the same custom properties by OS preference
    (DESIGN.md §2, §12.2). A manual toggle is not implemented (open question,
-   DESIGN.md end of file); this always follows `prefers-color-scheme`. */
+   DESIGN.md end of file); this always follows `prefers-color-scheme`.
+
+   This is a plain `:root` override, NOT a nested `@theme`: Tailwind v4 does not
+   support `@theme` inside another at-rule (it gets hoisted and the dark values
+   then win unconditionally, site wide). Utilities such as `bg-bg` compile to
+   `var(--color-bg)`, so overriding the custom properties here is sufficient. */
 @media (prefers-color-scheme: dark) {
-  @theme {
+  :root {
     --color-bg: #14171C;
     --color-surface: #1E2229;
     --color-surface-2: #272C35;

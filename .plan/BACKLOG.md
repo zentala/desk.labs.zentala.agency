@@ -141,7 +141,7 @@ Do not carry forward obsolete v0.1 claims about automatic desk control, old
 hardware architecture or an unfinished device as if they described the current
 product.
 
-- [ ] **`astro/src/styles/global.css` dark-mode tokens never activate** — the
+- [x] **`astro/src/styles/global.css` dark-mode tokens never activate** — RESOLVED W3-T4 (2026-09-25): dark values moved to a plain `@media (prefers-color-scheme: dark) { :root { … } }` override; page-scoped workaround in `lab/desk-scene.astro` removed; verified with Playwright `colorScheme` light/dark on `/` and `/lab/desk-scene/` (html bg `rgb(250,247,242)` vs `rgb(20,23,28)`). — the
   `@theme { ... }` block that overrides `--color-bg`, `--color-ink`, etc. for
   dark mode is nested inside `@media (prefers-color-scheme: dark) { }`
   (around line 148). Tailwind v4 does not scope a nested `@theme` correctly
