@@ -52,6 +52,7 @@ Code lives in `astro/src/styles/global.css` (`@theme`); this block is the source
       "sweater":    { "$type": "color", "$value": { "light": "#2F4A9C", "dark": "#2F4A9C" } },
       "pcb":        { "$type": "color", "$value": { "light": "#0F6B3A", "dark": "#0F6B3A" } },
       "copper":     { "$type": "color", "$value": { "light": "#D9B26F", "dark": "#D9B26F" } },
+      "sensor":     { "$type": "color", "$value": { "light": "#9D7E7E", "dark": "#9D7E7E" }, "$description": "the sensor enclosure: a natural muted case, not PCB green (owner pick, E005 studio)" },
       "screen":     { "$type": "color", "$value": { "light": "#FFFFFF", "dark": "#FFFFFF" } },
       "figure":     { "$type": "color", "$value": { "light": "#CDBE9F", "dark": "#CDBE9F" }, "$description": "the simple person: a sand figure, no skin tone; between desk top and fabric in value" },
       "fabric":     { "$type": "color", "$value": { "light": "#6E6963", "dark": "#6E6963" }, "$description": "chair seat/back, notebook, pot: warm dark neutral that stays quiet" },
@@ -290,7 +291,7 @@ The site is paper, ink and one coral accent (§2). The illustrations follow the 
 | Wood | `material.desk-top` | the desk top only |
 | Hardware grey | `ink-muted` (frame), `ink` (monitor, keyboard, mouse, cables, chair base) | everything made of metal or plastic |
 | Soft neutral | `material.fabric` (chair), `material.figure` (person), `material.plant` (one desaturated sage) | the things that are not the product |
-| **The product** | `material.pcb` + `material.copper` (sensor), **`brand`** (beam, dot) | the only green and the only coral in the room |
+| **The product** | `material.sensor` (enclosure, no pads), **`brand`** (beam, dot) | the only coral in the room; `pcb` / `copper` stay for a bare-board close-up |
 | **App state** | `state.*` fill / tint / text | on the monitor screen only |
 | Paper props | `surface` (mug) | small, quiet |
 
@@ -405,7 +406,9 @@ convention of a smooth clay figure in a faceted world. The owner picks on the la
 
 - Desk travel 72 → 112 cm over `motion.duration.scene` (600 ms) with `easing.enter`; the readout
   ticks with the height; the chip says Rising / Lowering while it moves (`SETTLE_EPS` 2 %).
-- Scroll-driven scenes map page scroll to the same `t`; they never hijack scroll speed.
+- Scroll-driven scenes map page scroll to story progress `u`; `kit/timeline.ts` `beatAt(u)` gives
+  the desk `t`, pose, chair, screen toast, timer and clock (spec §11). They never hijack scroll
+  speed. The lab studio plays the same function.
 - Beam opacity breathes 0.85 → 1 over 2 s. Nothing else idles.
 - Callouts fade in (`toast-in`) when the desk settles and out when it moves.
 - `prefers-reduced-motion`: no tween (states snap), no parallax, no breathing, scroll-driven scenes
@@ -416,7 +419,8 @@ convention of a smooth clay figure in a faceted world. The owner picks on the la
 - ≤ 25 k triangles and ≤ 100 draw calls per scene; 60 fps on an integrated GPU at `dpr` 2 is the
   acceptance test, not a triangle count.
 - Every scene: Astro island, `client:visible`, dynamic import so `three` is its own chunk (hero
-  chunk ≈ 261 kB gzip; kit + callouts add ≈ 8 kB). Ships a WebP render of the same scene as the
+  chunk ≈ 261 kB gzip; kit + callouts add ≈ 8 kB). N8AO ambient occlusion is a separate lazy
+  chunk (≈ 96 kB gzip) loaded on wide desktop screens only (ADR-012 amendment). Ships a WebP render of the same scene as the
   no-JS / pre-hydration fallback, rendered headless from the same code.
 - Screen textures: the canvas is sized from the screen's *projected* on-page pixels × dpr
   (`kit/screen.ts`, 256–2048 px, no mipmaps, linear filtering), and the UI is drawn in a fixed

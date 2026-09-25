@@ -195,7 +195,7 @@ Status is per the code at the "last reconciled" commit above. `open` items are t
 | R-04 | Nested column stages, thinnest at the bottom, +14 mm per stage, flush crossbar, each stage its own tone with a shadow band | W3-T4 round 2, W3-T6 #4 | done | `desk/Desk.tsx`, `scenePalette.ts` |
 | R-05 | Beam visible in every scene with a floor dot | DESIGN §8 | done | `desk/Sensor.tsx` |
 | R-06 | Big ultrawide all-in-one; USB-C port on its side | W3-T4 #7, W3-T7 | done | `desk/Monitor.tsx` |
-| R-07 | Cable from the sensor into the monitor port, on surfaces | W3-T4 #2, W3-T7, review B3 | done | `desk/Sensor.tsx` `cablePath` |
+| R-07 | Cable from the sensor into the monitor port, on surfaces; it never enters the desktop (centre line ≥ radius + 3 mm; wraps the back edge outside the 35 mm top; bend waypoint before the climb) | W3-T4 #2, W3-T7, review B3, owner E005 studio | done | `desk/sensorGeometry.ts` `cablePath`, `desk/cablePath.test.ts` (vitest) |
 | R-08 | State and toast only on the screen; dominant readout; Rising/Lowering states | W3-T4 #8–9, W3-T5, W3-T6 | done | `desk/screenApp.ts`, `DeskScene.tsx` |
 | R-09 | Scroll-driven rise with buttons as the accessible fallback | W3-T4 #11 | done | `DeskScene.tsx`, `kit/motion.ts` |
 | R-10 | A chair; the person sits / stands; sharp and rounded variants with a lab toggle | W3-T4 #10, W3-T7 | done | `desk/Chair.tsx`, `DeskSceneLab.tsx` |
@@ -208,8 +208,8 @@ Status is per the code at the "last reconciled" commit above. `open` items are t
 | R-17 | Homepage "How it works" section with the scene | W3-T6 #8 | done | `components/report/HowItWorksScene.astro` |
 | R-18 | Rounded chair: drop the flat square pan; backrest proportionate to the seat | 2026-09-25 evening | **open** | `desk/Chair.tsx` |
 | R-19 | Sharp chair is the default everywhere | 2026-09-25 evening | done | `DeskScene.tsx`, `DeskSceneLab.tsx` |
-| R-20 | Enclosure NOT green: natural neutral case; green only for a PCB | 2026-09-25 evening | **open** | `desk/Sensor.tsx`, `scenePalette.ts`, `DESIGN.md` §0 |
-| R-21 | Remove the yellow "sticker" block on the enclosure | 2026-09-25 evening | **open** | `desk/Sensor.tsx` |
+| R-20 | Enclosure NOT green: natural neutral case (`material.sensor` `#9D7E7E`, owner pick in the studio); green only for a PCB | 2026-09-25 evening, E005 studio | done | `desk/Sensor.tsx`, `scenePalette.ts`, `DESIGN.md` §0 |
+| R-21 | Remove the yellow "sticker" block on the enclosure (the copper pads) | 2026-09-25 evening | done | `desk/Sensor.tsx` |
 | R-22 | Cable enters the narrower end of the enclosure; the laser emitter sits at that end | 2026-09-25 evening | **open** | `desk/Sensor.tsx` |
 | R-23 | Cable continuity on the seated side (no visible break) | 2026-09-25 evening | **open** | `desk/Sensor.tsx` `cablePath` |
 | R-24 | Cable lies on the enclosure and bends down naturally from the outlet | 2026-09-25 evening | **open** | `desk/Sensor.tsx` |
@@ -219,20 +219,24 @@ Status is per the code at the "last reconciled" commit above. `open` items are t
 | R-28 | Fix the neck and the arm/shoulder join; evaluate a hybrid figure (faceted legs, smooth hips and head); hips need work either way | 2026-09-25 evening | **open** | `kit/Person.tsx` |
 | R-29 | Mouse rounder (not a cigarette pack) | 2026-09-25 evening | **open** | `desk/Props.tsx` |
 | R-30 | Paddle buttons vertical; paddle almost at the right end of the desk | 2026-09-25 evening | **open** | `desk/Desk.tsx` |
-| R-31 | No jitter on interaction | 2026-09-25 evening | **open** | `kit/World.tsx` `Lens`, `kit/SceneCanvas.tsx`, `DeskScene.tsx` |
-| R-32 | Free orbit rotation (front, back, below) in addition to scroll and buttons | 2026-09-25 evening | **open** | `kit/World.tsx`, `DeskScene.tsx` |
+| R-31 | No jitter on interaction: stale canvas rect mid-scroll (`SyncCanvasRect`, fceef69) and the parallax pitch flipping under a still mouse while scrolling (`Lens` reads the viewport pointer) | 2026-09-25 evening | done | `kit/SceneCanvas.tsx`, `kit/World.tsx` `Lens`; guarded by `npm run check:jitter` |
+| R-32 | Free orbit rotation (front, back, below) in addition to scroll and buttons | 2026-09-25 evening | partial — in `/lab/studio` only; not on the homepage | `studio/StudioRig.tsx`; `kit/World.tsx`, `DeskScene.tsx` |
 | R-33 | Laser floor dot visible at every scroll position; more floor in frame | 2026-09-25 evening | **open** | `kit/style.ts` `CAMERA` |
 | R-34 | Insets look good in every state, theme and width | 2026-09-25 evening | **open** | `DeskScene.tsx` `insetCameras` |
 | R-35 | Illustration ~2× larger on big screens, using much more of the viewport | 2026-09-25 evening | **open** | `components/report/HowItWorksScene.astro`, `DeskScene.tsx` |
 | R-36 | Floor slab as an island inside the frame (no corner slicing) | review B6 | partial | `kit/style.ts` `STAGE` |
-| R-37 | Longer scroll story with the beats of §11; visible time cues (wall clock with moving hands and/or a ticking timer) | 2026-09-25 addendum | **open** | `DeskScene.tsx` (timeline), new `desk/Clock.tsx` |
+| R-37 | Longer scroll story with the beats of §11; visible time cues (wall clock with moving hands and/or a ticking timer) | 2026-09-25 addendum | partial — `beatAt(u)` drives the scroll (600 vh) and the studio player; timer on the monitor chip and a story clock on the screen; no wall clock, no phone yet | `kit/timeline.ts` (+ test), `DeskScene.tsx`, `desk/screenApp.ts` |
 | R-38 | Phone as the persistent second screen on an angled stand; monitor shows transient notifications only | 2026-09-25 addendum | **open** | new `desk/Phone.tsx`, `desk/screenApp.ts` (split) |
 | R-39 | The person visibly presses the paddle button to raise and lower the desk; paddle at the right end, out of the way | 2026-09-25 addendum | **open** | `kit/poses.ts` (reach pose), `desk/Desk.tsx` |
 | R-40 | Hotspots on sensor, paddle, USB-C port, phone; click opens that inset; "show all" toggle; nothing permanent by default | 2026-09-25 addendum | **open** | `callouts/*`, `DeskScene.tsx` |
 | R-41 | Zoom (dolly) with limits, mouse and touch | 2026-09-25 addendum | **open** | `kit/World.tsx` |
 | R-42 | Orbit and scroll coexist: orbit pauses scroll-camera control; "Reset view" returns it | 2026-09-25 addendum | **open** | `kit/World.tsx`, `DeskScene.tsx` |
-| R-43 | Away scenario: the person walks away, the app shows Away and the limit resets | 2026-09-25 addendum | **open** | `kit/poses.ts` (walk), `desk/screenApp.ts` |
+| R-43 | Away scenario: the person walks away, the app shows Away and the limit resets | 2026-09-25 addendum | partial — beat 9: stands, turns, slides out (no gait on our figure; ready-made rigs walk); screen shows Away / Timer paused | `kit/timeline.ts` `walkOffset`, `desk/screenApp.ts` |
 | R-44 | Chair choreography: pushed back on standing, pulled in on sitting | 2026-09-25 addendum | **open** (lower priority) | `desk/Chair.tsx` |
+| R-45 | Ambient occlusion (N8AO, `quality="medium"`) on the hero, desktop only: off under reduced motion, touch, < 1024 px or < 6 cores; its own lazy chunk (≈ 96 kB gzip) | owner, E005 studio | done | `SceneAO.tsx`, `DeskScene.tsx` |
+| R-46 | A scene studio: play / scrub the storyboard, switch figures (original vs our style), tune the pose, sensor colour and cable; lab only, noindex | owner, E005 studio | done | `pages/lab/studio.astro`, `components/studio/*` |
+| R-47 | A relaxed, natural ready-made figure (not a combat stance), hands on the keyboard while working | owner, E005 studio | partial — relax offsets + two-bone IK in the studio; not on the homepage | `studio/relax.ts`, `studio/rig.ts` |
+| R-48 | Cable thickness adjustable in the studio; the site default stays `CABLE_RADIUS` (2.8 mm) until the owner picks | owner, E005 studio | done | `studio/studioControls.ts`, `desk/sensorGeometry.ts` |
 
 ## 9. Acceptance criteria per object
 
@@ -254,9 +258,21 @@ sitting, standing and mid-scroll (`.plan/epics/E005-*/wave3/`).
   both themes and on mobile.
 - **Viewer:** no jitter; orbit works with mouse and touch without stealing page scroll; reduced
   motion snaps; console errors 0; scene chunk ≤ 275 kB gzip.
+- **Scroll stability (automated):** `npm run check:jitter` (`astro/scripts/check-scroll-jitter.mjs`)
+  scrolls `/lab/desk-scene/` in headless Chromium and passes only if the hero view is drawn
+  within 2 px of its element and each callout ring within 4 px, in every frame, with at least
+  10 hero frames measured. It fails on the pre-fix code (hero 40 px without `SyncCanvasRect`;
+  rings 26.7 px with the old parallax).
+- **Cable (automated):** `npm test` — `cablePath.test.ts` samples the Catmull-Rom curve at five
+  desk heights and fails if any point comes within radius + 3 mm of the desktop box.
+- **Story (automated):** `npm test` — `timeline.test.ts`: nine contiguous beats, pure, desk
+  moves only in beats 4 and 7.
 
 ## 10. Change log
 
+- 2026-09-25 — E005 studio (branch `e005-libs-spike`): R-07, R-20, R-21, R-31 done; R-37, R-43
+  partial (`beatAt`); R-45..R-48 added (N8AO on desktop, scene studio, relaxed figure, cable
+  thickness); automated checks added to §9.
 - 2026-09-25 — v1, reconciled with DeskScene v6 (`f1570e8`); R-18 and R-20..R-35 recorded as
   open from the owner's evening review; R-37..R-44, the storyboard (§11) and the task breakdown
   (§12) added from the owner's addendum the same evening.
