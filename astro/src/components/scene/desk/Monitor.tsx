@@ -104,8 +104,8 @@ export function Monitor({ heightM, state, heightCm, palette, withScreen = true, 
         <Block size={MONITOR.body} color={palette.ink} finish="satin" />
         {withScreen && <Screen heightM={heightM} state={state} heightCm={heightCm} fixedPixels={screenPixels} />}
         {/* USB-C port: a slot in the right side face, with the plug seated in it */}
-        <Block size={[0.004, 0.008, 0.018]} position={[MONITOR.body[0] / 2 + 0.001, port[1] - bodyY(heightM), 0]} color={palette.frame} castShadow={false} />
-        <Block size={[0.022, 0.007, 0.012]} position={[MONITOR.body[0] / 2 + 0.012, port[1] - bodyY(heightM), 0]} color={palette.frame} />
+        <Block size={[0.004, 0.009, 0.02]} position={[MONITOR.body[0] / 2 + 0.001, port[1] - bodyY(heightM), 0]} color={palette.inkMuted} castShadow={false} />
+        <Block size={[0.024, 0.007, 0.012]} position={[MONITOR.body[0] / 2 + 0.013, port[1] - bodyY(heightM), 0]} color={palette.fabric} />
       </group>
     </group>
   );

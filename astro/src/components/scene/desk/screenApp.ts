@@ -1,8 +1,8 @@
 /**
  * What the all-in-one monitor shows: the Open Smart Desk app, designed for
- * its real on-page size (the screen is ~330 CSS px wide at 1280 px). Four
- * things only: the app mark, the height readout, the state chip and one
- * toast in the settled states. Drawn in a 1000 × 417 design space; the
+ * its real on-page size (the screen is ~330 CSS px wide at 1280 px). Three
+ * things only: the height readout, the state chip and one toast in its own
+ * column in the settled states (the app mark was ~8 px at hero size: dropped). Drawn in a 1000 × 417 design space; the
  * canvas resolution comes from the projected pixels (`kit/screen.ts`).
  *
  * The screen is always the light app (`material.screen` is white in both
@@ -24,18 +24,6 @@ const LABEL: Record<DeskState, string> = {
   lowering: "Lowering",
   standing: "Standing",
 };
-
-function drawMark(ctx: CanvasRenderingContext2D) {
-  ctx.fillStyle = p.brand;
-  ctx.beginPath();
-  ctx.arc(52, 52, 14, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = p.inkMuted;
-  ctx.font = `600 30px ${SCREEN_FONT.display}`;
-  ctx.textBaseline = "middle";
-  ctx.fillText("Open Smart Desk", 80, 53);
-  ctx.textBaseline = "alphabetic";
-}
 
 /** State chip: icon + label, never colour alone (DESIGN.md §3). */
 function drawChip(ctx: CanvasRenderingContext2D, x: number, y: number, state: DeskState) {
@@ -84,23 +72,27 @@ function drawChip(ctx: CanvasRenderingContext2D, x: number, y: number, state: De
 
 function drawReadout(ctx: CanvasRenderingContext2D, state: DeskState, heightCm: number) {
   const x = 44;
+  ctx.fillStyle = p.inkMuted;
+  ctx.font = `500 30px ${SCREEN_FONT.body}`;
+  ctx.fillText("DESK HEIGHT", x + 4, 74);
   ctx.fillStyle = p.ink;
-  ctx.font = `700 300px ${SCREEN_FONT.display}`;
-  ctx.fillText(`${heightCm}`, x - 10, 320);
+  ctx.font = `700 250px ${SCREEN_FONT.display}`;
+  ctx.fillText(`${heightCm}`, x - 8, 300);
   const numW = ctx.measureText(`${heightCm}`).width;
   ctx.fillStyle = p.inkMuted;
-  ctx.font = `600 84px ${SCREEN_FONT.display}`;
-  ctx.fillText("cm", x + numW + 12, 320);
-  drawChip(ctx, x + 8, 340, state);
+  ctx.font = `600 76px ${SCREEN_FONT.display}`;
+  ctx.fillText("cm", x + numW + 10, 300);
+  drawChip(ctx, x + 4, 326, state);
 }
 
 function drawToast(ctx: CanvasRenderingContext2D, w: number, h: number, state: DeskState) {
   const toast = TOAST[state];
   if (!toast) return;
-  const cardW = 400;
+  // its own column on the right, clear of the readout and the unit
+  const cardW = 380;
   const cardH = 150;
-  const x = w - cardW - 40;
-  const y = h - cardH - 36;
+  const x = w - cardW - 36;
+  const y = 40;
   ctx.save();
   ctx.shadowColor = "rgba(31,36,48,0.22)";
   ctx.shadowBlur = 34;
@@ -126,7 +118,6 @@ export function drawScreen(ctx: CanvasRenderingContext2D, w: number, h: number, 
   ctx.fillRect(0, 0, w, h);
   ctx.fillStyle = "rgba(31,36,48,0.06)";
   ctx.fillRect(0, 0, w, h);
-  drawMark(ctx);
   drawReadout(ctx, state, heightCm);
   drawToast(ctx, w, h, state);
 }

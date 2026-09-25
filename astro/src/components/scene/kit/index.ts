@@ -16,7 +16,7 @@ export { World, LightRig, Slab, Lens } from "./World";
 export { InsetView } from "./InsetView";
 export { Block, Blob, Capsule, Rod, Cable, Surface, GHOST_DEPTH_ORDER, type Vec3, type Finish } from "./Block";
 export { Person, type FigureStyle } from "./Person";
-export { BODY, SITTING, STANDING, blendPose, type Pose } from "./poses";
+export { BODY, SITTING, STANDING, blendPose, standUp, type Pose } from "./poses";
 export { useCanvasTexture, roundRect, wrapText, SCREEN_FONT } from "./screen";
 export { useScrollProgress, scrollToProgress } from "./motion";
 export {

@@ -301,8 +301,9 @@ The site is paper, ink and one coral accent (§2). The illustrations follow the 
 
 - **Key** `DirectionalLight` from upper-left-front `(-2.5, 4.5, 3)`, intensity 1.8, warm `#FFEFD8`,
   `castShadow`, 2048 PCF-soft map, bias -0.0005. Lights tops and front (+Z) faces.
-- **Fill** `DirectionalLight` from right-back `(4, 2.5, -1.5)`, intensity 0.7, cool `#DDE6F2`, no
-  shadow. Lights the side (+X) faces the camera sees, one step darker than the front.
+- **Fill** `DirectionalLight` from right-back `(4, 2.5, -1.5)`, intensity 0.4, cool `#DDE6F2`, no
+  shadow. Lights the side (+X) faces the camera sees, clearly darker than the front: top, front
+  and side must read as three values on every column stage (v1.5 had this; v5 lost it).
 - **Sky** `HemisphereLight` `#FFF4E2` over `line`, intensity 0.85. Low on purpose: it is the floor
   of the value range, not a second key.
 - **Rim** `DirectionalLight` from behind-right `(1.5, 3, -4)`, intensity 0.9, white, no shadow. It
@@ -327,14 +328,16 @@ The site is paper, ink and one coral accent (§2). The illustrations follow the 
   (≈ 35° vertical at 16:10, ≈ 46° in 4:5), so the chair, the person, the beam and the callout
   column are always in the picture; a phone gets a taller crop, not a tiny desk.
 - **Viewpoint:** front-right three-quarter (~53° off the desk's front axis), eye height 1.35 m.
-  Hero: position `(2.75, 1.35, 2.05)`, target `(0.05, 0.82, 0.15)`; the target rises up to 12 cm
-  with the person (`lift`) so a standing head keeps headroom. The camera sees the right side of the
+  Hero: position `(2.75, 1.35, 2.05)`, target `(0.05, 0.86, 0.15)`, frame 2.15 × 1.95 m; the target
+  rises up to 6 cm with the person (`lift`). In portrait the target shifts 10 cm right so the
+  chair clears the left edge. The camera sees the right side of the
   desk: the sensor under the back-right corner, the paddle front-right, the chair and the person
   beside the desk, and empty paper on the right for the callouts.
 - **Parallax:** ±4° orbit on pointer move, none on touch, none under reduced motion.
-- **Stage:** a bevelled slab 3.2 × 2.6 m whose far edge is in frame (an island) and whose near edge
-  spills out of it; outside the slab the canvas is transparent so the page colour is the horizon.
-  No walls, no sky dome, no fog.
+- **Stage:** a sharp slab 2.7 × 2.6 m centred 30 cm left of the desk, so its right edge ends inside
+  the frame under the callout column (an island) while its near edge spills out of the frame;
+  outside the slab the canvas is transparent so the page colour is the horizon. No walls, no sky
+  dome, no fog.
 - Section scenes reuse the same lens; they may move the target and distance, never the height or
   the side. No dutch angles, no top-down, no fisheye.
 
@@ -348,18 +351,20 @@ variants (`figureStyle`): `faceted` (icosahedra and 7-sided capsules, the defaul
 convention of a smooth clay figure in a faceted world. The owner picks on the lab page.
 
 - Masses (`Blob`): head 19 × 22 × 20 cm (detail 2), ribcage 36 × 40 × 24, pelvis 30 × 20 × 22,
-  hands, feet. Limbs (`Capsule`): neck, upper arm r 4.5 / 22, forearm r 4 / 19, thigh r 7.5 / 32,
-  shin r 5.5 / 36 (radius / straight length, cm). The arms pivot 45 cm above the hips and 16.5 cm
-  off centre — inside the ribcage's silhouette, just below its widest point. Masses overlap;
-  joints are hidden inside the capsule caps, so there are no visible seams to pose around.
+  hands, feet; the pelvis (30 × 16 × 22) sits up inside the ribcage with a waist capsule (r 10.5)
+  between them so the torso is one mass, not two balls. Limbs (`Capsule`): neck, upper arm
+  r 4.5 / 22, forearm r 4 / 19, thigh r 7.5 / 32, shin r 5.5 / 36 (radius / straight length, cm).
+  The arms pivot 43 cm above the hips and 16.5 cm off centre — inside the ribcage's silhouette,
+  just below its widest point. Masses overlap; joints are hidden inside the capsule caps.
 - Rig (`kit/Person.tsx`): joints are nested groups; poses are joint angles in `kit/poses.ts`
   (`SITTING`, `STANDING`; later `walking`, `jumpingJacks`, `stretch`).
 - Proportions: 1.75 m, ~7 heads, shoulders wider than pelvis. Feet are on the floor in every
   settled pose and the hands are on the keyboard in both (angles solved by hand, see file).
 - Tonal contrast is part of the figure: `material.figure` sits between the desk top (lighter) and
   the chair fabric (darker), so the silhouette reads against both.
-- Poses blend by a single eased `t`; sit → stand is a hip rise plus a 7 cm step toward the desk.
-  Chunky is fine, floating is not.
+- `standUp(t)` is the stand-up arc, not a linear blend: the hips slide forward over the feet with a
+  forward lean in the first part, the rise happens in the second with the knees under the hips,
+  then the torso straightens. The mid-scroll frame is a lean, never a mid-air squat.
 - `finish="ghost"` (translucent, depth pre-pass + `EqualDepth`) exists for scenes that need
   "someone was here" (away = empty chair), not for the hero.
 
@@ -379,14 +384,17 @@ convention of a smooth clay figure in a faceted world. The owner picks on the la
 - **Monitor:** one 34" ultrawide all-in-one on a slim neck, satin ink body, with a **USB-C port on
   its right side** where the sensor cable plugs in (a slot and a seated plug). The screen is the
   app, designed for its real on-page size (~330 CSS px wide at 1280 px): the app mark, a dominant
-  height readout, a state chip (Sitting / Rising / Lowering / Standing) and one toast in the
-  settled states. Nothing else, nothing about state floats in 3D.
-- **Chair:** two variants (`chairStyle`): `sharp` (boxy seat and back, the default and the
-  homepage's) and `rounded` (faceted seat and back cushions, the pan hidden inside the seat).
-- Keyboard, mouse, an 8-sided cream mug with a handle, a notebook, and one small plant (faceted
-  pot, three stretched icosahedron leaves in `material.plant`, a desaturated sage that cannot be
-  read as PCB green): the whole prop list. The mug and notebook live on the right of the desk; the
-  plant stands at the left end so nothing hides the cable's run into the monitor.
+  height readout, a state chip (Sitting / Rising / Lowering / Standing) and one toast in its own
+  right-hand column in the settled states, never over the readout or its unit. Nothing else,
+  nothing about state floats in 3D.
+- **Chair:** two variants (`chairStyle`): `sharp` (6 cm boxy seat, 8° backrest, `ink` post and pan;
+  the default everywhere) and `rounded` (faceted seat and back cushions, `ink` pan hidden inside
+  the seat). When the person stands the chair rolls 45 cm back and 15 cm left and turns, so the
+  empty chair is never the biggest dark mass in the standing frame.
+- Keyboard, mouse, an 8-sided cream mug with a handle, a notebook: the whole prop list. The plant
+  was dropped in W3-T8 (it never had a spot where it read as more than a sliver; `material.plant`
+  stays in §0 for a future scene). The cable runs on surfaces the whole way: under the top, around
+  the back edge, along the back edge on the desktop and up the monitor's right side into the port.
 
 ### 8.7 Motion
 
@@ -427,7 +435,10 @@ convention of a smooth clay figure in a faceted world. The owner picks on the la
 ### 8.10 Zoom callouts
 
 Circular magnified insets with a leader line to a 3D anchor and one short label. They explain the
-product parts (sensor, cable) that are honest but small at hero size. **They are real views**: the
+product parts (sensor, cable) that are honest but small at hero size. They live in a **paper
+column beside the hero** (236 px on desktop) or a row under it on narrow screens — never over the
+hero — so the shared canvas can be clipped with `clip-path: path()` to the hero rectangle plus the
+inset circles and the square View scissor never shows, in either theme. **They are real views**: the
 same objects rendered by another camera into the same canvas, not drawings — this reverses the
 2026-09-25 decision "Zoom callouts as HTML/SVG over the canvas" (§14); the leader lines and labels
 stay HTML/SVG.
@@ -438,12 +449,15 @@ stay HTML/SVG.
   its own narrow lens (16–22°), the light rig plus a little extra sky, and a subset of the scene
   (`parts`: the sensor with the desk, or the monitor with the cable). The View scissor is square;
   an SVG in the ring covers its corners with paper so only the circle shows.
-- **The two insets:** A, the sensor from below and behind (PCB, copper, lens, the cable leaving
-  its connector); B, the cable plugging into the monitor's side port with the screen corner for
-  context. The "height change" inset was dropped: the animation already shows it.
-- **Placement:** inset centre = anchor + per-callout offset (fractions of the frame), clamped
-  inside the frame. The hero keeps its right third empty for a column of up to three insets. A
-  leader line may cross the scene but not the screen or another inset.
+- **The two insets:** A, the sensor from below and behind with a 13° lens (PCB, copper, lens, the
+  cable leaving its connector, the desk top as the only context — no columns or brackets); B, the
+  seated USB-C plug in the monitor's side port from behind-right at port height, 14° lens, no
+  screen (§8.10 forbids text inside the circle). The "height change" inset was dropped: the
+  animation already shows it.
+- **Placement** (`placeCallouts`): ring centres on the column's axis at the anchor's height,
+  de-overlapped and kept inside the frame; the label goes on the side the leader does not come
+  from (above when the anchor is below the ring), so a leader never crosses its own label. The
+  anchor mark is a 5 px open ring set 5 cm outboard of the part, so it never covers it.
 - **Inset framing rules:** the camera follows the anchor as the desk moves; the object fills
   ~60 % of the circle; no text inside the circle; the beam may appear in A, nothing coral in B.
 - **Style:** `surface` fill, 1.5 px `line-strong` ring, `elevation.2` shadow, leader 1.5 px

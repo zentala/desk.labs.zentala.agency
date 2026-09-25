@@ -40,7 +40,7 @@ interface FixedColors {
   figure: string;
   /** token: color.material.plant — the one desk plant, a desaturated sage that cannot be mistaken for PCB green */
   plant: string;
-  /** column stages, top → bottom: `ink-muted`, dark `line` value, `ink` (DESIGN.md §8.6) */
+  /** column stages, top → bottom: dark `line-strong`, a step between, dark `line` (DESIGN.md §8.6) */
   stageTop: string;
   stageMid: string;
   stageBottom: string;
@@ -100,10 +100,10 @@ const FIXED: FixedColors = {
   teal: "#1C7C74",
   frame: "#5B6270",
   plant: "#8FA08A",
-  stageTop: "#5B6270",
-  stageMid: "#2C313A",
-  stageBottom: "#1F2430",
-  fabric: "#6E6963",
+  stageTop: "#6B7280",
+  stageMid: "#4B5160",
+  stageBottom: "#2C313A",
+  fabric: "#7D7770",
   figure: "#CDBE9F",
   ink: "#1F2430",
   inkMuted: "#5B6270",

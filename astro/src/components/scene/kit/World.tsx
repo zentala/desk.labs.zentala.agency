@@ -48,18 +48,18 @@ export function Slab({ palette }: { palette: ScenePalette }) {
     <group>
       <Block
         size={[STAGE.width, STAGE.thickness, STAGE.depth]}
-        position={[0, -STAGE.thickness / 2, STAGE.centerZ]}
+        position={[STAGE.centerX, -STAGE.thickness / 2, STAGE.centerZ]}
         color={palette.slab}
         castShadow={false}
       />
       <Block
         size={[STAGE.rug.width, STAGE.rug.thickness, STAGE.rug.depth]}
-        position={[0.05, STAGE.rug.thickness / 2 - 0.001, STAGE.centerZ + 0.05]}
+        position={[STAGE.centerX + 0.2, STAGE.rug.thickness / 2 - 0.001, STAGE.centerZ + 0.05]}
         color={palette.rug}
         castShadow={false}
       />
       <ContactShadows
-        position={[0, STAGE.rug.thickness + 0.002, STAGE.centerZ]}
+        position={[STAGE.centerX, STAGE.rug.thickness + 0.002, STAGE.centerZ]}
         opacity={LIGHT.contactOpacity}
         blur={LIGHT.contactBlur}
         far={LIGHT.contactFar}
@@ -72,12 +72,14 @@ export function Slab({ palette }: { palette: ScenePalette }) {
 }
 
 /** Fits `CAMERA.frame` at the target in every aspect ratio and adds a ±4° pointer parallax. */
-export function Lens({ parallax, lift }: { parallax: boolean; lift: number }) {
+export function Lens({ parallax, lift, portrait }: { parallax: boolean; lift: number; portrait: boolean }) {
   const { size, pointer, invalidate } = useThree();
   const cam = useRef<THREE.PerspectiveCamera>(null);
   const target = useRef(new THREE.Vector3(...CAMERA.target));
   const base = useRef(new THREE.Vector3(...CAMERA.position));
   target.current.y = CAMERA.target[1] + CAMERA.maxLift * Math.min(1, Math.max(0, lift));
+  // portrait: shift the target right so the chair's backrest clears the left edge (review C2)
+  target.current.x = CAMERA.target[0] + (portrait ? 0.1 : 0);
 
   useEffect(() => {
     const c = cam.current;
@@ -92,7 +94,7 @@ export function Lens({ parallax, lift }: { parallax: boolean; lift: number }) {
     c.position.copy(base.current);
     c.lookAt(target.current);
     invalidate();
-  }, [size, lift, invalidate]);
+  }, [size, lift, portrait, invalidate]);
 
   useFrame(() => {
     const c = cam.current;
@@ -121,15 +123,17 @@ export interface WorldProps {
   parallax?: boolean;
   /** 0..1 camera target lift (§8.4), e.g. follows the person standing up */
   lift?: number;
+  /** narrow (4:5) frame */
+  portrait?: boolean;
   children: ReactNode;
 }
 
-export function World({ palette, parallax = true, lift = 0, children }: WorldProps) {
+export function World({ palette, parallax = true, lift = 0, portrait = false, children }: WorldProps) {
   return (
     <>
       <LightRig palette={palette} />
       <Slab palette={palette} />
-      <Lens parallax={parallax} lift={lift} />
+      <Lens parallax={parallax} lift={lift} portrait={portrait} />
       {children}
     </>
   );

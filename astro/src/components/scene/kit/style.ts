@@ -45,7 +45,7 @@ export const LIGHT = {
   hemisphereIntensity: 0.85,
   keyIntensity: 1.7,
   keyPosition: [-2.5, 4.5, 3] as [number, number, number],
-  fillIntensity: 0.65,
+  fillIntensity: 0.4,
   fillPosition: [4, 2.5, -1.5] as [number, number, number],
   rimIntensity: 0.9,
   rimPosition: [1.5, 3, -4] as [number, number, number],
@@ -64,20 +64,21 @@ export const LIGHT = {
 /** Lens and viewpoint (§8.4). */
 export const CAMERA = {
   /** the box (m) at the target that must fit in every aspect ratio; fov is derived from it */
-  frame: { width: 2.2, height: 2.15 },
+  frame: { width: 2.15, height: 1.85 },
   position: [2.75, 1.35, 2.05] as [number, number, number],
-  target: [0.05, 0.82, 0.15] as [number, number, number],
+  target: [0.05, 0.86, 0.15] as [number, number, number],
   /** the target rises by this much (m) at `lift` = 1, e.g. as the person stands up */
-  maxLift: 0.12,
+  maxLift: 0.06,
   parallaxDeg: 4,
 } as const;
 
 /** Stage slab (§8.4). */
 export const STAGE = {
-  width: 3.2,
+  width: 2.7,
   depth: 2.6,
   thickness: 0.03,
-  /** the slab's far edge is in frame (an island); its near edge spills out of the frame */
+  /** the slab ends inside the frame on the right (an island); its near edge spills out of the frame */
+  centerX: -0.3,
   centerZ: 0.45,
   rug: { width: 1.9, depth: 1.4, thickness: 0.006 },
 } as const;

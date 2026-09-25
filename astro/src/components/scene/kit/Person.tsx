@@ -1,7 +1,8 @@
 /**
  * Scene kit — the simple person (DESIGN.md §8.5), built the way a figure is
  * sketched: overlapping ellipsoids for the masses (head, ribcage, pelvis,
- * hands, feet) and capsules for the limbs. No boxes, no shoulder caps.
+ * hands, feet) and capsules for the neck, waist and limbs, so the torso is
+ * one mass. No boxes, no shoulder caps.
  * `figureStyle="faceted"` keeps the low-poly facets; `"smooth"` is the
  * architectural-model convention — a smooth clay figure in a faceted world.
  * Joints are nested groups so a pose is nothing but angles; see `poses.ts`.
@@ -100,7 +101,10 @@ export function Person({ pose, color, finish = "matte", figureStyle = "faceted" 
   return (
     <group position={pose.hip}>
       <group rotation={[pose.torsoLean, 0, 0]}>
-        <Mass size={BODY.pelvis} position={[0, 0.06, 0]} {...style} />
+        <Mass size={BODY.pelvis} position={[0, 0.04, 0]} {...style} />
+        <group position={[0, 0.2, -0.005]}>
+          <Segment {...BODY.waist} {...style} />
+        </group>
         <Mass size={BODY.ribcage} position={[0, 0.3, -0.01]} {...style} />
         <group position={[0, ribTop + neckTotal - 0.03, -0.01]}>
           <Segment {...BODY.neck} {...style} />

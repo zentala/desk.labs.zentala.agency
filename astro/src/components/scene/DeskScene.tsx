@@ -7,9 +7,7 @@ import {
   World,
   InsetView,
   Person,
-  SITTING,
-  STANDING,
-  blendPose,
+  standUp,
   prefersReducedMotion,
   useScenePalette,
   useScrollProgress,
@@ -24,18 +22,20 @@ import { Chair, type ChairStyle } from "./desk/Chair";
 import { DeskProps } from "./desk/Props";
 import { deskHeight, deskHeightCm } from "./desk/dims";
 import { Projector, type ProjectedAnchors } from "./callouts/Projector";
-import { Callouts, type TrackRefs } from "./callouts/Callouts";
+import { Callouts, placeCallouts, CIRCLE_PX, LIST_CIRCLE_PX, type PlacedCallout, type TrackRefs } from "./callouts/Callouts";
 import { useTween, useDirection, useElementSize } from "./desk/hooks";
 
 /**
- * DeskScene v5 — hero scene of the family (DESIGN.md §8), drawn with the kit.
+ * DeskScene v6 — hero scene of the family (DESIGN.md §8), drawn with the kit.
  *
  * One number drives everything: `t` (0 = sitting, 1 = standing). The desk
  * height, the person's pose, the chair, the screen readout and the toast all
  * derive from it. `t` comes from the buttons (600 ms tween) or, in `scroll`
  * mode, from the page scroll through a tall wrapper. One shared canvas holds
- * three drei Views: the hero and two callout insets that are the same objects
- * seen by other cameras. Reduced motion: no tween, no parallax, no scroll drive.
+ * three drei Views: the hero, and two callout insets in a paper column beside
+ * it (a row under it on narrow screens). The canvas is clipped to the hero
+ * rectangle plus the inset circles, so the square View scissors never show.
+ * Reduced motion: no tween, no parallax, no scroll drive.
  */
 
 const SCROLL_TRAVEL_VH = 240;
@@ -43,6 +43,8 @@ const SCROLL_TRAVEL_VH = 240;
 const SCROLL_WINDOW: [number, number] = [0.12, 0.85];
 /** |t| within this of an end is "settled": toast and callouts show */
 const SETTLE_EPS = 0.02;
+/** the callout column beside the hero, CSS px */
+const COLUMN_PX = 236;
 
 function smoothstep(t: number): number {
   const c = Math.min(1, Math.max(0, t));
@@ -81,33 +83,38 @@ function SceneContent({ t, state, breathe, parts, chairStyle, figureStyle, onPro
   const heightM = deskHeight(t);
   const heightCm = deskHeightCm(t);
   const port = monitorPort(heightM);
-  const pose = blendPose(SITTING, STANDING, smoothstep(t));
+  const pose = standUp(t);
+  const s = sensorCenter(heightM);
 
   return (
     <>
-      <Desk heightM={heightM} palette={palette} />
+      <Desk heightM={heightM} palette={palette} topOnly={parts !== "all"} />
       <Sensor heightM={heightM} palette={palette} port={port} breathe={breathe} withBeam={parts !== "monitor"} />
-      {parts !== "sensor" && (
-        <Monitor heightM={heightM} state={state} heightCm={heightCm} palette={palette} screenPixels={parts === "all" ? undefined : 1024} />
-      )}
-      {parts !== "sensor" && <DeskProps heightM={heightM} palette={palette} />}
+      {parts !== "sensor" && <Monitor heightM={heightM} state={state} heightCm={heightCm} palette={palette} withScreen={parts === "all"} />}
+      {parts === "all" && <DeskProps heightM={heightM} palette={palette} />}
       {parts === "all" && <Chair t={smoothstep(t)} palette={palette} chairStyle={chairStyle} />}
       {parts === "all" && <Person pose={pose} color={palette.figure} figureStyle={figureStyle} />}
       {parts === "all" && onProject && (
-        <Projector anchors={{ sensor: sensorCenter(heightM), cable: port }} onChange={onProject} />
+        <Projector anchors={{ sensor: [s[0] + 0.05, s[1] - 0.01, s[2] + 0.02], cable: [port[0] + 0.03, port[1], port[2]] }} onChange={onProject} />
       )}
     </>
   );
 }
 
-/** Inset cameras follow the desk: A looks at the sensor from below and behind, B at the port from the right. */
-function insetCameras(heightM: number): { sensor: { position: Vec3; target: Vec3 }; cable: { position: Vec3; target: Vec3 } } {
+/** Inset cameras follow the desk: A looks up at the sensor from below and behind, B down at the seated plug from front-right so the side face is a thin edge. */
+function insetCameras(heightM: number): Record<"sensor" | "cable", { position: Vec3; target: Vec3 }> {
   const s = sensorCenter(heightM);
   const p = monitorPort(heightM);
   return {
-    sensor: { position: [s[0] + 0.26, s[1] - 0.3, s[2] - 0.42], target: [s[0] - 0.01, s[1], s[2]] },
-    cable: { position: [p[0] + 0.62, p[1] + 0.3, p[2] + 0.5], target: [p[0] - 0.04, p[1] + 0.02, p[2] + 0.02] },
+    sensor: { position: [s[0] + 0.2, s[1] - 0.2, s[2] - 0.34], target: [s[0] - 0.005, s[1] + 0.005, s[2] + 0.01] },
+    cable: { position: [p[0] + 0.19, p[1] + 0.07, p[2] + 0.14], target: [p[0] + 0.012, p[1] - 0.014, p[2] - 0.004] },
   };
+}
+
+/** `clip-path: path()` for the canvas: the hero rectangle plus every ring circle (nonzero union). */
+function canvasClip(hero: { width: number; height: number }, rings: Array<{ cx: number; cy: number; r: number }>): string {
+  const circles = rings.map(({ cx, cy, r }) => `M${cx - r} ${cy}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0Z`).join("");
+  return `path("M0 0H${hero.width}V${hero.height}H0Z${circles}")`;
 }
 
 export interface DeskSceneProps {
@@ -139,7 +146,9 @@ export default function DeskScene({
   const mainRef = useRef<HTMLDivElement>(null);
   const tracks: TrackRefs = { sensor: useRef<HTMLDivElement>(null), cable: useRef<HTMLDivElement>(null) };
   const mainSize = useElementSize(mainRef);
+  const boxSize = useElementSize(boxRef);
   const [anchors, setAnchors] = useState<ProjectedAnchors>({});
+  const [listRings, setListRings] = useState<Array<{ cx: number; cy: number; r: number }>>([]);
   const scrollMode = scroll && !reduced;
   const progress = useScrollProgress(wrapperRef, scrollMode);
   const [tweenT, go, setT] = useTween(reduced);
@@ -160,6 +169,27 @@ export default function DeskScene({
     return () => window.clearInterval(id);
   }, [autoPlay, reduced, scrollMode, go, tweenT]);
 
+  // narrow layout: the list rings are laid out by the browser; read them for the clip-path
+  useEffect(() => {
+    if (!narrow || !callouts) return;
+    const box = boxRef.current;
+    if (!box) return;
+    const measure = () => {
+      const b = box.getBoundingClientRect();
+      const rings = [tracks.sensor.current, tracks.cable.current].flatMap((el) => {
+        if (!el) return [];
+        const r = el.getBoundingClientRect();
+        return [{ cx: r.left - b.left + r.width / 2, cy: r.top - b.top + r.height / 2, r: r.width / 2 }];
+      });
+      setListRings(rings);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(box);
+    return () => ro.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [narrow, callouts, boxSize.width]);
+
   const t = scrollMode
     ? Math.min(1, Math.max(0, (progress - SCROLL_WINDOW[0]) / (SCROLL_WINDOW[1] - SCROLL_WINDOW[0])))
     : tweenT;
@@ -167,6 +197,11 @@ export default function DeskScene({
   const state = stateFor(t, direction);
   const settled = state === "sitting" || state === "standing";
   const cams = insetCameras(deskHeight(t));
+
+  const columnLayout = callouts && !narrow;
+  const placed: PlacedCallout[] = columnLayout ? placeCallouts(anchors, mainSize.width + COLUMN_PX / 2, mainSize.height) : [];
+  const rings = columnLayout ? placed.map((p) => ({ cx: p.cx, cy: p.cy, r: CIRCLE_PX / 2 })) : narrow && callouts ? listRings : [];
+  const clip = mainSize.width > 0 ? canvasClip(mainSize, rings.length ? rings : [{ cx: -1, cy: -1, r: LIST_CIRCLE_PX / 2 }]) : undefined;
 
   const setState = (next: "sitting" | "standing") => {
     const target = next === "standing" ? 1 : 0;
@@ -202,6 +237,8 @@ export default function DeskScene({
         // React does not patch a hydration mismatch in inline styles.
         background: "var(--color-bg)",
         touchAction: "pan-y",
+        display: "flex",
+        flexDirection: narrow ? "column" : "row",
       }}
     >
       <div
@@ -209,30 +246,32 @@ export default function DeskScene({
         data-scene-figure
         role="img"
         aria-label={`Desk scene: ${state}, desk at ${deskHeightCm(t)} cm`}
-        style={{ position: "relative", zIndex: 1, aspectRatio: narrow ? "4 / 5" : "16 / 10" }}
-      >
-        {callouts && !narrow && (
-          <Callouts layout="overlay" visible={settled} anchors={anchors} width={mainSize.width} height={mainSize.height} tracks={tracks} />
-        )}
-      </div>
-      {callouts && narrow && (
-        <div style={{ position: "relative", zIndex: 1 }}>
-          <Callouts layout="list" visible={settled} anchors={anchors} width={0} height={0} tracks={tracks} />
+        style={{ position: "relative", zIndex: 1, flex: "1 1 auto", aspectRatio: narrow ? "4 / 5" : "1.25" }}
+      />
+      {columnLayout && <div style={{ flex: `0 0 ${COLUMN_PX}px` }} aria-hidden="true" />}
+      {columnLayout && (
+        <div style={{ position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none" }}>
+          <Callouts layout="column" visible={settled} placed={placed} width={boxSize.width} height={boxSize.height} tracks={tracks} />
         </div>
       )}
-      <SceneCanvas eventSource={boxRef}>
+      {callouts && narrow && (
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <Callouts layout="list" visible={settled} placed={[]} width={0} height={0} tracks={tracks} />
+        </div>
+      )}
+      <SceneCanvas eventSource={boxRef} clipPath={clip}>
         <View track={mainRef as RefObject<HTMLElement>} index={1}>
-          <World palette={palette} parallax={!reduced && !coarse} lift={smoothstep(t)}>
+          <World palette={palette} parallax={!reduced && !coarse} lift={smoothstep(t)} portrait={narrow}>
             {content("all", setAnchors)}
           </World>
         </View>
         {callouts && (
-          <InsetView track={tracks.sensor} visible={settled || narrow} index={2} palette={palette} fov={22} {...cams.sensor}>
+          <InsetView track={tracks.sensor} visible={settled || narrow} index={2} palette={palette} fov={13} {...cams.sensor}>
             {content("sensor")}
           </InsetView>
         )}
         {callouts && (
-          <InsetView track={tracks.cable} visible={settled || narrow} index={3} palette={palette} fov={18} {...cams.cable}>
+          <InsetView track={tracks.cable} visible={settled || narrow} index={3} palette={palette} fov={16} {...cams.cable}>
             {content("monitor")}
           </InsetView>
         )}

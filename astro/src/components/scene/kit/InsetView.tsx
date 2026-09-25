@@ -54,12 +54,23 @@ export interface InsetViewProps {
   children: ReactNode;
 }
 
+/** A demand-rendered inset may mount before its ring is laid out; ask for a few frames after mount. */
+function WakeFrames() {
+  const { invalidate } = useThree();
+  useEffect(() => {
+    const ids = [60, 250, 800, 1600].map((ms) => window.setTimeout(invalidate, ms));
+    return () => ids.forEach((id) => window.clearTimeout(id));
+  }, [invalidate]);
+  return null;
+}
+
 export function InsetView({ track, visible, index, palette, position, target, fov, children }: InsetViewProps) {
   return (
     <View track={track as RefObject<HTMLElement>} visible={visible} index={index}>
       <LightRig palette={palette} />
       {/* a little extra sky: insets look at undersides and side faces the key never reaches */}
       <hemisphereLight intensity={0.5} />
+      <WakeFrames />
       <InsetLens position={position} target={target} fov={fov} track={track} />
       {children}
     </View>

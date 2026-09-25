@@ -84,17 +84,23 @@ function Paddle({ underside, palette }: { underside: number; palette: ScenePalet
 export interface DeskProps {
   heightM: number;
   palette: ScenePalette;
+  /** callout insets show the top only: no columns, brackets or paddle to explain */
+  topOnly?: boolean;
 }
 
-export function Desk({ heightM, palette }: DeskProps) {
+export function Desk({ heightM, palette, topOnly = false }: DeskProps) {
   const underside = heightM - DESK.topThickness;
+  const top = (
+    <Block
+      size={[DESK.width, DESK.topThickness, DESK.depth]}
+      position={[0, heightM - DESK.topThickness / 2, 0]}
+      color={palette.deskTop}
+    />
+  );
+  if (topOnly) return top;
   return (
     <group>
-      <Block
-        size={[DESK.width, DESK.topThickness, DESK.depth]}
-        position={[0, heightM - DESK.topThickness / 2, 0]}
-        color={palette.deskTop}
-      />
+      {top}
       <Column x={-DESK.columnX} underside={underside} palette={palette} />
       <Column x={DESK.columnX} underside={underside} palette={palette} />
       {/* slim crossbar flush under the top, hidden from above (owner round 2) */}

@@ -11,13 +11,17 @@ import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
 import { LIGHT } from "./style";
 
+const CANVAS_HEIGHT = "250%";
+
 export interface SceneCanvasProps {
   /** the element whose descendants are tracked by the views; the canvas is absolutely positioned inside it */
   eventSource: RefObject<HTMLElement | null>;
+  /** CSS clip-path: the hero rectangle plus the inset circles, so square View scissors never show */
+  clipPath?: string;
   children: ReactNode;
 }
 
-export function SceneCanvas({ eventSource, children }: SceneCanvasProps) {
+export function SceneCanvas({ eventSource, clipPath, children }: SceneCanvasProps) {
   return (
     <Canvas
       frameloop="demand"
@@ -33,7 +37,11 @@ export function SceneCanvas({ eventSource, children }: SceneCanvasProps) {
         toneMapping: THREE.NeutralToneMapping,
         toneMappingExposure: LIGHT.exposure,
       }}
-      style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
+      // Taller than its box on purpose: drei's View compares a tracked element's
+      // viewport `top` with the canvas HEIGHT to decide "offscreen", so a ring low
+      // in a box that sits low on the page would be skipped. Rendering is
+      // scissored per view, so the extra area costs memory, not fill rate.
+      style={{ position: "absolute", top: 0, left: 0, width: "100%", height: CANVAS_HEIGHT, pointerEvents: "none", clipPath }}
     >
       {children}
     </Canvas>
