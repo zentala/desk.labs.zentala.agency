@@ -192,3 +192,13 @@ The owner closed the 3D scene work at v4 ("finish, commit, put it on the site").
 - E011 page rebuild: new homepage, `/how-it-works`, `/why-stand`, `/diy`, `/build-log`, LaunchCTA with a waitlist backend.
 - More scenes (stool, walking away, jumping jacks).
 - Owner decisions still open: variant B as the DIY board, a test batch of 5 before `/diy`, MoveUp thresholds 40/90 vs 30/45.
+
+## 15. DeskScene v5–v6 (2026-09-25)
+
+- v5 applied the owner's plan (`wave3/W3-T7-v5-plan.md`). An independent visual review followed (`wave3/W3-T7-visual-review.md`), then the v6 fix round: live drei `<View>` insets (sensor from below, USB-C plug in the monitor's side port), one-mass torso, a `standUp` pose, the cable running along surfaces, the plant removed, and a crisp screen UI.
+- Defaults are chair = sharp and figure = faceted. The owner can switch variants with the A/B toggles on `/lab/desk-scene`.
+- Known leftovers:
+  - Empty headroom above the scene on the homepage.
+  - The near slab edge spills out of the frame.
+  - Inset B shows the plug but not the cable.
+  - Workaround for a drei `View` offscreen bug: the canvas is 250% of the box height.
