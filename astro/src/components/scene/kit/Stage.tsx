@@ -32,6 +32,7 @@ function LightRig({ palette }: { palette: ScenePalette }) {
         shadow-camera-near={0.5}
         shadow-camera-far={12}
       />
+      <directionalLight position={LIGHT.fillPosition} intensity={LIGHT.fillIntensity} color={LIGHT.fillColor} />
     </>
   );
 }

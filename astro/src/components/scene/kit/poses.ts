@@ -4,6 +4,8 @@
  * A pose is a set of joint angles (radians, rotation about the body's X axis:
  * positive swings a hanging limb forward, toward the desk at -Z) plus the hip
  * position in scene space. Poses blend linearly by `t`; the caller eases `t`.
+ * Arm angles are solved by hand so the hands land on the keyboard (desk front
+ * edge at z = 0.30, keyboard at z ≈ 0.12–0.19) in both settled poses.
  */
 import type { Vec3 } from "./Block";
 
@@ -16,35 +18,37 @@ export interface Pose {
   knee: number;
 }
 
-/** Body proportions in metres: 1.75 m, ~7 heads (§8.5). */
+/** Body proportions in metres: 1.75 m, ~7 heads (§8.5). Sole = hip.y − 0.95 when standing. */
 export const BODY = {
-  headRadius: 0.11,
-  torso: [0.34, 0.55, 0.2] as Vec3,
+  headRadius: 0.105,
+  neck: [0.08, 0.06, 0.08] as Vec3,
+  torso: [0.34, 0.5, 0.2] as Vec3,
   upperArm: [0.085, 0.3, 0.085] as Vec3,
   forearm: [0.075, 0.27, 0.075] as Vec3,
+  hand: [0.07, 0.03, 0.09] as Vec3,
   thigh: [0.15, 0.44, 0.15] as Vec3,
-  shin: [0.12, 0.42, 0.12] as Vec3,
+  shin: [0.12, 0.47, 0.12] as Vec3,
   foot: [0.1, 0.05, 0.24] as Vec3,
   shoulderX: 0.225,
   hipX: 0.09,
 } as const;
 
-/** Sitting at the desk on a 47 cm seat, forearms on the keyboard. */
+/** Sitting at the desk on a 47 cm seat, hands on the keyboard. */
 export const SITTING: Pose = {
-  hip: [0, 0.545, 0.6],
-  torsoLean: -0.06,
-  shoulder: 0.35,
-  elbow: 1.25,
+  hip: [0, 0.53, 0.52],
+  torsoLean: -0.05,
+  shoulder: 0.55,
+  elbow: 0.84,
   thigh: Math.PI / 2,
   knee: -Math.PI / 2,
 };
 
-/** Standing at the desk, one step closer, forearms at 112 cm. */
+/** Standing at the desk, one step closer, hands on the keyboard at 112 cm. */
 export const STANDING: Pose = {
-  hip: [0, 0.915, 0.45],
+  hip: [0, 0.95, 0.45],
   torsoLean: -0.02,
-  shoulder: 0.28,
-  elbow: 1.15,
+  shoulder: 0.35,
+  elbow: 1.1,
   thigh: 0,
   knee: 0,
 };
