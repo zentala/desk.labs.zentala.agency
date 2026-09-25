@@ -14,6 +14,7 @@ Options (after the `--`):
   --transparent                transparent film + backdrop hidden, floor kept as a shadow catcher
   --anim PATH.mp4              render the rise animation (desk 72 -> 112, the person stands)
   --frames N                   animation length in frames at 24 fps (default 120)
+  --encode-only                with --anim: skip rendering, encode blender/out/anim_frames
 
 Writes PNGs named <shot>.png and prints one JSON line per render with timings.
 """
@@ -68,6 +69,7 @@ def parse():
     ap.add_argument("--anim")
     ap.add_argument("--frames", type=int, default=120)
     ap.add_argument("--no-stills", action="store_true")
+    ap.add_argument("--encode-only", action="store_true", help="re-encode existing anim frames")
     ap.add_argument("--no-ao", action="store_true", help="skip the AO multiply in the compositor")
     a = ap.parse_args(argv)
     a.out = os.path.abspath(a.out)
@@ -136,6 +138,9 @@ def run_anim(args):
     frames_dir = os.path.join(OUT, "anim_frames")
     os.makedirs(frames_dir, exist_ok=True)
     n = args.frames
+    if args.encode_only:
+        encode(frames_dir, args.anim, n, args)
+        return
     hold = 12  # frames held at each end
     for f in range(n):
         u = min(1.0, max(0.0, (f - hold) / (n - 2 * hold - 1)))
@@ -171,6 +176,8 @@ def encode(frames_dir, mp4, n, args):
     sc.frame_start, sc.frame_end = 1, len(files)
     sc.render.fps = 24
     sc.view_settings.view_transform = "Standard"
+    if hasattr(sc.render.image_settings, "media_type"):  # Blender 5.x: video is a media type
+        sc.render.image_settings.media_type = "VIDEO"
     sc.render.image_settings.file_format = "FFMPEG"
     sc.render.ffmpeg.format = "MPEG4"
     sc.render.ffmpeg.codec = "H264"

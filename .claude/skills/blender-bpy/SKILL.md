@@ -67,6 +67,9 @@ coordinate conventions, recorded deviations) and the scene spec
   it an output socket via `ng.interface.new_socket(...)`, use `NodeGroupOutput`, assign
   `scene.compositing_node_group`. Mix is `ShaderNodeMix` (`data_type="RGBA"`; colour inputs are
   indices 6 and 7, result is output 2). `CompositorNodeMixRGB` no longer exists.
+- **Video output moved in 5.x**: `image_settings.file_format = "FFMPEG"` fails until you set
+  `image_settings.media_type = "VIDEO"`. Render animations to PNG frames first, encode after
+  (`render.py --anim ... --encode-only` re-encodes without re-rendering).
 - **`use_nodes`** on materials/worlds is deprecated (always on) - harmless to set, do not rely on it.
 - **`bpy.types.RenderSettings` engine enum** lists only `BLENDER_EEVEE` in a factory-startup
   introspection; `"CYCLES"` still works once the cycles add-on is loaded (it is by default).
