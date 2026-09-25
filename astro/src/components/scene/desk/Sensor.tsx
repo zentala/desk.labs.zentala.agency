@@ -71,9 +71,11 @@ export interface SensorProps {
   breathe: boolean;
   /** insets skip the beam and its floor dot */
   withBeam?: boolean;
+  /** the lab spike draws its own cable variants; default true */
+  withCable?: boolean;
 }
 
-export function Sensor({ heightM, palette, port, breathe, withBeam = true }: SensorProps) {
+export function Sensor({ heightM, palette, port, breathe, withBeam = true, withCable = true }: SensorProps) {
   const [, boxY] = sensorCenter(heightM);
   const beamTop = boxY - BOX[1] / 2;
   const beamLen = beamTop - DOT_Y;
@@ -112,7 +114,7 @@ export function Sensor({ heightM, palette, port, breathe, withBeam = true }: Sen
           </mesh>
         </>
       )}
-      <Cable points={cable} color={palette.ink} />
+      {withCable && <Cable points={cable} color={palette.ink} />}
     </group>
   );
 }

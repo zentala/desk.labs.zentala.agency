@@ -1,0 +1,32 @@
+---
+import '../../styles/fonts.css';
+import '../../styles/global.css';
+import SpikeLab from '../../components/spike/SpikeLab';
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Lab: library spike — Open Smart Desk</title>
+  </head>
+  <body class="bg-bg text-ink" style="min-height: 100vh; padding: 32px 24px 20vh;">
+    <main style="max-width: 1100px; margin: 0 auto;">
+      <p style="font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ink-muted);">
+        Lab — library spike (E005), not indexed, throw-away branch
+      </p>
+      <h1 style="font-family: var(--font-display); font-size: 2rem; margin: 8px 0 12px;">
+        Scene playground
+      </h1>
+      <p style="color: var(--color-ink-muted); max-width: 70ch; margin-bottom: 16px;">
+        The Leva panel (top right) switches the figure, the cable model, the render plugins and the
+        light rig live. Drag to orbit, wheel to zoom, "reset view" in the panel. Everything here is
+        spike code under <code>src/components/spike/</code>; nothing on the site imports it.
+      </p>
+      <div id="spike-root">
+        <SpikeLab client:only="react" />
+      </div>
+    </main>
+  </body>
+</html>
