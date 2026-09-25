@@ -159,3 +159,5 @@ product.
   currently looks fine only because it happens to render dark-on-dark or
   hasn't been checked against actual `prefers-color-scheme: light`.
   (Importance: High — silently wrong on every real light-mode visitor; Points: 3)
+
+- [ ] **`astro/src/pages/updates/rss.xml.ts` fails `tsc --noEmit`** — `Parameter 'context' implicitly has an 'any' type` (line 3); the repo has no typecheck script, so nobody sees it, but it makes `npx tsc --noEmit -p astro` permanently red and hides new errors. Found during W3-T4 (2026-09-25). Fix: type the param as `APIContext` from `astro`. (Importance: Low, Points: 1)
