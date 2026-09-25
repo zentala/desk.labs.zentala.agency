@@ -1,8 +1,9 @@
 /**
  * Our sensor: a PCB-green box on the UNDERSIDE of the desktop near the
- * back-right corner, facing down, with a clear line of sight to the floor
- * (W3-T5 item 5). One thin cable runs under the top, around the back edge
- * and along it into the all-in-one monitor. The beam is the one glow.
+ * back-right corner, lens facing down, clear line of sight to the floor.
+ * One smooth cable leaves its back through a connector, runs under the top
+ * to the back edge, around it, and straight into the USB-C port on the
+ * monitor's side (W3-T7). The beam is the one glow.
  */
 import { useEffect, useMemo, useState } from "react";
 import { useThree } from "@react-three/fiber";
@@ -16,15 +17,24 @@ export const SENSOR_X = DESK.width / 2 - BOX[0] / 2 - 0.015;
 export const SENSOR_Z = -DESK.depth / 2 + 0.1;
 const DOT_Y = 0.008;
 
-/** World-space points the callouts point at, for a given desk height. */
-export function sensorAnchors(heightM: number, monitorZ: number): { sensor: Vec3; cable: Vec3; laser: Vec3 } {
+/** Centre of the sensor box for a desk height. */
+export function sensorCenter(heightM: number): Vec3 {
+  return [SENSOR_X, heightM - DESK.topThickness - BOX[1] / 2, SENSOR_Z];
+}
+
+/** Waypoints from the sensor's back connector to the monitor port. */
+export function cablePath(heightM: number, port: Vec3): Vec3[] {
   const underside = heightM - DESK.topThickness;
-  void monitorZ;
-  return {
-    sensor: [SENSOR_X + 0.03, underside - BOX[1] / 2, SENSOR_Z],
-    cable: [0.42, heightM + 0.004, -DESK.depth / 2 + 0.03],
-    laser: [SENSOR_X, (underside + DOT_Y) * 0.5, SENSOR_Z],
-  };
+  const back = -DESK.depth / 2;
+  return [
+    [SENSOR_X - 0.01, underside - 0.014, SENSOR_Z - BOX[2] / 2 - 0.012],
+    [SENSOR_X - 0.03, underside - 0.008, back + 0.02],
+    [SENSOR_X - 0.05, underside + 0.012, back - 0.018],
+    [SENSOR_X - 0.08, heightM + 0.004, back + 0.025],
+    [port[0] + 0.12, heightM + 0.02, back + 0.06],
+    [port[0] + 0.06, port[1] - 0.01, port[2]],
+    [port[0] + 0.024, port[1], port[2]],
+  ];
 }
 
 /** Beam opacity breathes 0.85 → 1 over 2 s (DESIGN.md §8.7); off under reduced motion. */
@@ -47,73 +57,52 @@ function useBreath(enabled: boolean): number {
 export interface SensorProps {
   heightM: number;
   palette: ScenePalette;
-  /** monitor neck position on the desk, where the cable ends */
-  monitorZ: number;
+  /** where the cable ends: the monitor's side port */
+  port: Vec3;
   breathe: boolean;
+  /** insets skip the beam and its floor dot */
+  withBeam?: boolean;
 }
 
-export function Sensor({ heightM, palette, monitorZ, breathe }: SensorProps) {
-  const underside = heightM - DESK.topThickness;
-  const boxY = underside - BOX[1] / 2;
+export function Sensor({ heightM, palette, port, breathe, withBeam = true }: SensorProps) {
+  const [, boxY] = sensorCenter(heightM);
   const beamTop = boxY - BOX[1] / 2;
   const beamLen = beamTop - DOT_Y;
-  const opacity = useBreath(breathe);
-  const back = -DESK.depth / 2;
-
-  const cable = useMemo<Vec3[]>(
-    () => [
-      [SENSOR_X - 0.01, underside - 0.014, SENSOR_Z - 0.02],
-      [SENSOR_X - 0.03, underside - 0.008, back + 0.02],
-      [SENSOR_X - 0.05, underside + 0.012, back - 0.018],
-      [SENSOR_X - 0.08, heightM + 0.004, back + 0.025],
-      [0.25, heightM + 0.004, back + 0.03],
-      [0.04, heightM + 0.006, monitorZ - 0.06],
-      [0.0, heightM + 0.09, monitorZ - 0.02],
-    ],
-    [heightM, underside, monitorZ, back],
-  );
+  const opacity = useBreath(breathe && withBeam);
+  const cable = useMemo(() => cablePath(heightM, port), [heightM, port]);
 
   return (
     <group>
       <group position={[SENSOR_X, boxY, SENSOR_Z]}>
         <Block size={BOX} color={palette.pcb} />
         {/* copper pads on the two faces the camera sees: the "honest PCB" detail */}
-        <Block
-          size={[0.004, 0.016, 0.03]}
-          position={[BOX[0] / 2 + 0.001, 0, 0]}
-          color={palette.copper}
-          castShadow={false}
-        />
-        <Block
-          size={[0.04, 0.016, 0.004]}
-          position={[0, 0, BOX[2] / 2 + 0.001]}
-          color={palette.copper}
-          castShadow={false}
-        />
-        {/* the lens: a small dark square on the underside, where the beam leaves */}
-        <Block
-          size={[0.012, 0.003, 0.012]}
-          position={[0, -BOX[1] / 2 - 0.001, 0]}
-          color={palette.ink}
-          castShadow={false}
-        />
+        <Block size={[0.004, 0.016, 0.03]} position={[BOX[0] / 2 + 0.001, 0, 0]} color={palette.copper} castShadow={false} />
+        <Block size={[0.04, 0.016, 0.004]} position={[0, 0, BOX[2] / 2 + 0.001]} color={palette.copper} castShadow={false} />
+        {/* the lens on the underside, where the beam leaves */}
+        <Block size={[0.012, 0.003, 0.012]} position={[0, -BOX[1] / 2 - 0.001, 0]} color={palette.ink} castShadow={false} />
+        {/* USB-C connector on the back face */}
+        <Block size={[0.012, 0.007, 0.014]} position={[-0.01, 0, -BOX[2] / 2 - 0.006]} color={palette.frame} />
       </group>
-      <Rod
-        radius={0.003}
-        length={beamLen}
-        position={[SENSOR_X, beamTop - beamLen / 2, SENSOR_Z]}
-        color={palette.brand}
-        finish="glow"
-        castShadow={false}
-      />
-      <mesh position={[SENSOR_X, DOT_Y, SENSOR_Z]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.022, 16]} />
-        <meshBasicMaterial color={palette.brand} toneMapped={false} transparent opacity={opacity} />
-      </mesh>
-      <mesh position={[SENSOR_X, DOT_Y - 0.001, SENSOR_Z]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.05, 16]} />
-        <meshBasicMaterial color={palette.brand} toneMapped={false} transparent opacity={0.2 * opacity} />
-      </mesh>
+      {withBeam && (
+        <>
+          <Rod
+            radius={0.003}
+            length={beamLen}
+            position={[SENSOR_X, beamTop - beamLen / 2, SENSOR_Z]}
+            color={palette.brand}
+            finish="glow"
+            castShadow={false}
+          />
+          <mesh position={[SENSOR_X, DOT_Y, SENSOR_Z]} rotation={[-Math.PI / 2, 0, 0]}>
+            <circleGeometry args={[0.022, 16]} />
+            <meshBasicMaterial color={palette.brand} toneMapped={false} transparent opacity={opacity} />
+          </mesh>
+          <mesh position={[SENSOR_X, DOT_Y - 0.001, SENSOR_Z]} rotation={[-Math.PI / 2, 0, 0]}>
+            <circleGeometry args={[0.05, 16]} />
+            <meshBasicMaterial color={palette.brand} toneMapped={false} transparent opacity={0.2 * opacity} />
+          </mesh>
+        </>
+      )}
       <Cable points={cable} color={palette.ink} />
     </group>
   );

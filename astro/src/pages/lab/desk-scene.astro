@@ -1,7 +1,7 @@
 ---
 import '../../styles/fonts.css';
 import '../../styles/global.css';
-import DeskScene from '../../components/scene/DeskScene';
+import DeskSceneLab from '../../components/scene/DeskSceneLab';
 ---
 
 <html lang="en">
@@ -17,12 +17,12 @@ import DeskScene from '../../components/scene/DeskScene';
         Lab — internal preview, not indexed
       </p>
       <h1 style="font-family: var(--font-display); font-size: 2.25rem; margin: 8px 0 16px;">
-        DeskScene v3
+        DeskScene v5
       </h1>
       <p style="color: var(--color-ink-muted); max-width: 60ch; margin-bottom: 24px;">
         Faceted-light hero scene drawn with the scene kit (DESIGN.md §8). Scroll: the desk starts seated
-        and rises as you scroll through this section; the zoom callouts appear once it settles. The
-        buttons scroll for you; under reduced motion the scene is static and the buttons switch states.
+        and rises as you scroll through this section; the callout insets are live views of the same
+        objects and appear once it settles. Toggles above the scene switch the chair and figure variants.
       </p>
       <noscript>
         <img
@@ -34,7 +34,7 @@ import DeskScene from '../../components/scene/DeskScene';
         />
       </noscript>
       <div id="desk-scene-root">
-        <DeskScene client:visible scroll />
+        <DeskSceneLab client:visible />
       </div>
     </main>
   </body>

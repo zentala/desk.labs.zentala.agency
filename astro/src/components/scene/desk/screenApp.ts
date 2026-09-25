@@ -1,21 +1,21 @@
 /**
- * What the all-in-one monitor shows: the Open Smart Desk app. The height
- * readout dominates (W3-T5), a state chip names sitting / rising / lowering /
- * standing, a slim timeline sits at the bottom, and the nudge / confirmation
- * toast appears only in the settled states (copy per E010 §5). Drawn in
- * logical pixels; `useCanvasTexture` handles the 2× texel density.
+ * What the all-in-one monitor shows: the Open Smart Desk app, designed for
+ * its real on-page size (the screen is ~330 CSS px wide at 1280 px). Four
+ * things only: the app mark, the height readout, the state chip and one
+ * toast in the settled states. Drawn in a 1000 × 417 design space; the
+ * canvas resolution comes from the projected pixels (`kit/screen.ts`).
  *
- * The screen is always the light theme: `material.screen` is white in both
- * modes (DESIGN.md §0), so the app on it uses the light palette.
+ * The screen is always the light app (`material.screen` is white in both
+ * modes, DESIGN.md §0); it is dimmed 6 % so it sits with the paper scene.
  */
 import { scenePalette as p, stateFill, stateText, stateTint, type DeskState } from "../scenePalette";
 import { roundRect, wrapText, SCREEN_FONT } from "../kit";
 
-export const SCREEN_PX = { w: 1170, h: 488 } as const;
+export const SCREEN_DESIGN = { w: 1000, h: 417 } as const;
 
 const TOAST: Partial<Record<DeskState, { title: string; body: string }>> = {
   sitting: { title: "Time to stand up", body: "40 min sitting. Up for a minute?" },
-  standing: { title: "Nice one.", body: "Credit is ticking. Sit whenever you're ready." },
+  standing: { title: "Nice one.", body: "Credit is ticking." },
 };
 
 const LABEL: Record<DeskState, string> = {
@@ -25,160 +25,108 @@ const LABEL: Record<DeskState, string> = {
   standing: "Standing",
 };
 
-function drawTopBar(ctx: CanvasRenderingContext2D, w: number) {
-  ctx.fillStyle = p.surface;
-  ctx.fillRect(0, 0, w, 52);
-  ctx.fillStyle = p.line;
-  ctx.fillRect(0, 52, w, 2);
+function drawMark(ctx: CanvasRenderingContext2D) {
   ctx.fillStyle = p.brand;
   ctx.beginPath();
-  ctx.arc(34, 26, 9, 0, Math.PI * 2);
+  ctx.arc(52, 52, 14, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = p.ink;
-  ctx.font = `600 20px ${SCREEN_FONT.display}`;
-  ctx.textBaseline = "middle";
-  ctx.fillText("Open Smart Desk", 54, 27);
   ctx.fillStyle = p.inkMuted;
-  ctx.font = `500 17px ${SCREEN_FONT.mono}`;
-  ctx.textAlign = "right";
-  ctx.fillText("14:32", w - 30, 27);
-  ctx.textAlign = "left";
+  ctx.font = `600 30px ${SCREEN_FONT.display}`;
+  ctx.textBaseline = "middle";
+  ctx.fillText("Open Smart Desk", 80, 53);
+  ctx.textBaseline = "alphabetic";
 }
 
 /** State chip: icon + label, never colour alone (DESIGN.md §3). */
 function drawChip(ctx: CanvasRenderingContext2D, x: number, y: number, state: DeskState) {
   const label = LABEL[state];
-  ctx.font = `600 26px ${SCREEN_FONT.body}`;
-  const chipW = ctx.measureText(label).width + 72;
+  const h = 76;
+  ctx.font = `600 42px ${SCREEN_FONT.body}`;
+  const w = ctx.measureText(label).width + 118;
   ctx.fillStyle = stateTint(p, state);
-  roundRect(ctx, x, y, chipW, 48, 24);
+  roundRect(ctx, x, y, w, h, h / 2);
   ctx.fill();
+  const cx = x + 40;
+  const cy = y + h / 2;
   ctx.fillStyle = stateFill(p, state);
   ctx.beginPath();
-  ctx.arc(x + 26, y + 24, 12, 0, Math.PI * 2);
+  ctx.arc(cx, cy, 20, 0, Math.PI * 2);
   ctx.fill();
   ctx.strokeStyle = p.surface;
-  ctx.lineWidth = 3.5;
+  ctx.lineWidth = 6;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
   ctx.beginPath();
-  const cx = x + 26;
-  const cy = y + 24;
   if (state === "sitting") {
-    ctx.moveTo(cx - 7, cy);
-    ctx.lineTo(cx + 7, cy);
+    ctx.moveTo(cx - 11, cy);
+    ctx.lineTo(cx + 11, cy);
   } else if (state === "standing") {
-    ctx.moveTo(cx, cy + 7);
-    ctx.lineTo(cx, cy - 7);
-    ctx.moveTo(cx - 6, cy - 1);
-    ctx.lineTo(cx, cy - 7);
-    ctx.lineTo(cx + 6, cy - 1);
+    ctx.moveTo(cx, cy + 11);
+    ctx.lineTo(cx, cy - 11);
+    ctx.moveTo(cx - 9, cy - 2);
+    ctx.lineTo(cx, cy - 11);
+    ctx.lineTo(cx + 9, cy - 2);
   } else {
-    // moving: two chevrons, up or down
     const d = state === "rising" ? -1 : 1;
-    ctx.moveTo(cx - 6, cy - 4 * d);
-    ctx.lineTo(cx, cy + 1 * d);
-    ctx.lineTo(cx + 6, cy - 4 * d);
-    ctx.moveTo(cx - 6, cy + 2 * d);
-    ctx.lineTo(cx, cy + 7 * d);
-    ctx.lineTo(cx + 6, cy + 2 * d);
+    ctx.moveTo(cx - 10, cy - 6 * d);
+    ctx.lineTo(cx, cy + 2 * d);
+    ctx.lineTo(cx + 10, cy - 6 * d);
+    ctx.moveTo(cx - 10, cy + 4 * d);
+    ctx.lineTo(cx, cy + 12 * d);
+    ctx.lineTo(cx + 10, cy + 4 * d);
   }
   ctx.stroke();
   ctx.fillStyle = stateText(p, state);
   ctx.textBaseline = "middle";
-  ctx.fillText(label, x + 48, y + 25);
+  ctx.fillText(label, x + 76, cy + 1);
   ctx.textBaseline = "alphabetic";
 }
 
 function drawReadout(ctx: CanvasRenderingContext2D, state: DeskState, heightCm: number) {
-  const x = 48;
-  ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = p.inkMuted;
-  ctx.font = `500 18px ${SCREEN_FONT.body}`;
-  ctx.fillText("DESK HEIGHT", x, 96);
-  // the big number: the one thing you can read from across the room
+  const x = 44;
   ctx.fillStyle = p.ink;
-  ctx.font = `700 236px ${SCREEN_FONT.display}`;
-  ctx.fillText(`${heightCm}`, x - 8, 318);
+  ctx.font = `700 300px ${SCREEN_FONT.display}`;
+  ctx.fillText(`${heightCm}`, x - 10, 320);
   const numW = ctx.measureText(`${heightCm}`).width;
   ctx.fillStyle = p.inkMuted;
-  ctx.font = `600 64px ${SCREEN_FONT.display}`;
-  ctx.fillText("cm", x + numW + 14, 318);
-  drawChip(ctx, x, 340, state);
+  ctx.font = `600 84px ${SCREEN_FONT.display}`;
+  ctx.fillText("cm", x + numW + 12, 320);
+  drawChip(ctx, x + 8, 340, state);
 }
 
-function drawTimeline(ctx: CanvasRenderingContext2D, w: number, h: number, state: DeskState) {
-  const x = 48;
-  const y = h - 40;
-  const tw = w - 96;
-  const th = 14;
-  const live = state === "sitting" || state === "lowering" ? p.sitting : p.standing;
-  const segs: Array<[number, string]> = [
-    [0.22, p.sitting],
-    [0.08, p.standing],
-    [0.2, p.sitting],
-    [0.06, p.away],
-    [0.18, p.sitting],
-    [0.08, p.standing],
-    [0.1, live],
-  ];
-  ctx.fillStyle = p.rug;
-  roundRect(ctx, x, y, tw, th, 7);
-  ctx.fill();
-  let cx = x;
-  ctx.save();
-  roundRect(ctx, x, y, tw, th, 7);
-  ctx.clip();
-  for (const [frac, color] of segs) {
-    ctx.fillStyle = color;
-    ctx.fillRect(cx, y, tw * frac + 1, th);
-    cx += tw * frac;
-  }
-  ctx.restore();
-  ctx.fillStyle = p.brand;
-  for (const f of [0.22, 0.5, 0.82]) {
-    ctx.beginPath();
-    ctx.moveTo(x + tw * f - 5, y - 5);
-    ctx.lineTo(x + tw * f + 5, y - 5);
-    ctx.lineTo(x + tw * f, y + 2);
-    ctx.closePath();
-    ctx.fill();
-  }
-  ctx.fillStyle = p.inkMuted;
-  ctx.font = `500 16px ${SCREEN_FONT.body}`;
-  ctx.fillText("TODAY  ·  3 h 40 sitting  ·  1 h 10 standing  ·  5 changes", x, y - 16);
-}
-
-function drawToast(ctx: CanvasRenderingContext2D, w: number, state: DeskState) {
+function drawToast(ctx: CanvasRenderingContext2D, w: number, h: number, state: DeskState) {
   const toast = TOAST[state];
   if (!toast) return;
-  const cardW = 420;
-  const cardH = 116;
-  const x = w - cardW - 48;
-  const y = 88;
+  const cardW = 400;
+  const cardH = 150;
+  const x = w - cardW - 40;
+  const y = h - cardH - 36;
   ctx.save();
-  ctx.shadowColor = "rgba(31,36,48,0.25)";
-  ctx.shadowBlur = 32;
+  ctx.shadowColor = "rgba(31,36,48,0.22)";
+  ctx.shadowBlur = 34;
   ctx.shadowOffsetY = 12;
   ctx.fillStyle = p.surface;
-  roundRect(ctx, x, y, cardW, cardH, 20);
+  roundRect(ctx, x, y, cardW, cardH, 26);
   ctx.fill();
   ctx.restore();
   ctx.fillStyle = state === "sitting" ? p.brand : p.standing;
-  roundRect(ctx, x + 16, y + 22, 6, cardH - 44, 3);
+  roundRect(ctx, x + 22, y + 30, 8, cardH - 60, 4);
   ctx.fill();
   ctx.fillStyle = state === "sitting" ? p.ink : stateText(p, state);
-  ctx.font = `600 26px ${SCREEN_FONT.display}`;
-  ctx.fillText(toast.title, x + 42, y + 48);
+  ctx.font = `600 44px ${SCREEN_FONT.display}`;
+  ctx.fillText(toast.title, x + 54, y + 66);
   ctx.fillStyle = p.inkMuted;
-  ctx.font = `400 19px ${SCREEN_FONT.body}`;
-  wrapText(ctx, toast.body, x + 42, y + 80, cardW - 66, 25);
+  ctx.font = `400 34px ${SCREEN_FONT.body}`;
+  wrapText(ctx, toast.body, x + 54, y + 114, cardW - 80, 40);
 }
 
 /** Paint the whole app for a state and desk height. */
 export function drawScreen(ctx: CanvasRenderingContext2D, w: number, h: number, state: DeskState, heightCm: number) {
   ctx.fillStyle = p.bg;
   ctx.fillRect(0, 0, w, h);
-  drawTopBar(ctx, w);
+  ctx.fillStyle = "rgba(31,36,48,0.06)";
+  ctx.fillRect(0, 0, w, h);
+  drawMark(ctx);
   drawReadout(ctx, state, heightCm);
-  drawTimeline(ctx, w, h, state);
-  drawToast(ctx, w, state);
+  drawToast(ctx, w, h, state);
 }

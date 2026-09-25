@@ -1,33 +1,57 @@
 /**
- * Zoom callouts (DESIGN.md §8.10): circular magnified insets with a leader
- * line to a projected 3D anchor and a short label. Pure HTML/SVG over the
- * canvas, so the text is real text. `layout="overlay"` places each inset at
- * anchor + offset, clamped into the frame; `layout="list"` (narrow screens)
- * stacks the same insets under the scene without leader lines.
+ * Zoom callouts (DESIGN.md §8.10): circular insets that are real views of the
+ * same objects from other cameras, a leader line to the projected 3D anchor
+ * and one short label. This component owns only the DOM: the circle (which a
+ * drei `<View>` tracks and paints into), the ring, the leader and the label.
+ * `layout="overlay"` places each inset at anchor + offset inside the frame;
+ * `layout="list"` (narrow screens) is a row of the same circles under it.
  */
-import type { CSSProperties } from "react";
-import { INSETS, type InsetId } from "./insets";
+import type { CSSProperties, RefObject } from "react";
 import type { ProjectedAnchors } from "./Projector";
 
-const CIRCLE_PX = 112;
+export type CalloutId = "sensor" | "cable";
+
+export interface CalloutSpec {
+  id: CalloutId;
+  label: string;
+}
+
+export const CALLOUTS: CalloutSpec[] = [
+  { id: "sensor", label: "Sensor under the desktop, seen from below" },
+  { id: "cable", label: "USB-C cable into the monitor" },
+];
+
+export const CIRCLE_PX = 128;
 const LABEL_W = 190;
 /** vertical distance between inset centres in a column: circle + two label lines */
 const MIN_GAP = CIRCLE_PX + 52;
 /** inset centre = anchor + offset × frame size, per callout */
-const OFFSETS: Record<InsetId, [number, number]> = {
-  cable: [0.16, -0.32],
-  sensor: [0.17, -0.02],
-  laser: [0.15, 0.1],
+const OFFSETS: Record<CalloutId, [number, number]> = {
+  cable: [0.17, -0.3],
+  sensor: [0.18, 0.05],
 };
 
-const circleStyle: CSSProperties = {
-  width: CIRCLE_PX,
-  height: CIRCLE_PX,
+const ringStyle: CSSProperties = {
+  position: "relative",
   borderRadius: "50%",
-  overflow: "hidden",
-  background: "var(--color-surface)",
   boxShadow: "var(--shadow-2), 0 0 0 1.5px var(--color-line-strong)",
+  background: "transparent",
+  flex: "none",
 };
+
+/**
+ * The View paints the tracked square; this covers its corners with paper so
+ * only the circle shows (a `<View>` scissor is always rectangular).
+ */
+function Ring({ size, track }: { size: number; track: RefObject<HTMLDivElement | null> }) {
+  return (
+    <div ref={track} style={{ ...ringStyle, width: size, height: size }} aria-hidden="true">
+      <svg width={size} height={size} viewBox="0 0 100 100" style={{ position: "absolute", inset: 0, display: "block" }}>
+        <path d="M0 0H100V100H0Z M50 0A50 50 0 1 0 50 100A50 50 0 1 0 50 0Z" fill="var(--color-bg)" fillRule="evenodd" />
+      </svg>
+    </div>
+  );
+}
 
 const labelStyle: CSSProperties = {
   fontFamily: "var(--font-body)",
@@ -39,16 +63,7 @@ const labelStyle: CSSProperties = {
   width: LABEL_W,
 };
 
-function Inset({ id, size = CIRCLE_PX }: { id: InsetId; size?: number }) {
-  const spec = INSETS.find((i) => i.id === id)!;
-  return (
-    <div style={{ ...circleStyle, width: size, height: size }} aria-hidden="true">
-      <svg viewBox="0 0 100 100" width={size} height={size}>
-        {spec.draw}
-      </svg>
-    </div>
-  );
-}
+export type TrackRefs = Record<CalloutId, RefObject<HTMLDivElement | null>>;
 
 export interface CalloutsProps {
   layout: "overlay" | "list";
@@ -57,29 +72,21 @@ export interface CalloutsProps {
   /** canvas size in CSS px (overlay only) */
   width: number;
   height: number;
+  /** the circle elements the inset views track */
+  tracks: TrackRefs;
 }
 
 function clamp(v: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, v));
 }
 
-export function Callouts({ layout, visible, anchors, width, height }: CalloutsProps) {
+export function Callouts({ layout, visible, anchors, width, height, tracks }: CalloutsProps) {
   if (layout === "list") {
     return (
-      <ul
-        style={{
-          listStyle: "none",
-          padding: 0,
-          margin: "12px 0 0",
-          display: "grid",
-          gap: 12,
-          opacity: visible ? 1 : 0.5,
-          transition: "opacity var(--duration-toast-in) var(--ease-enter)",
-        }}
-      >
-        {INSETS.map((spec) => (
-          <li key={spec.id} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <Inset id={spec.id} size={64} />
+      <ul style={{ listStyle: "none", padding: "16px 16px 20px", margin: 0, display: "grid", gap: 14 }}>
+        {CALLOUTS.map((spec) => (
+          <li key={spec.id} style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <Ring size={88} track={tracks[spec.id]} />
             <span style={{ ...labelStyle, textAlign: "left", width: "auto", fontSize: 14 }}>{spec.label}</span>
           </li>
         ))}
@@ -90,17 +97,14 @@ export function Callouts({ layout, visible, anchors, width, height }: CalloutsPr
   const r = CIRCLE_PX / 2;
   const top = r + 8;
   const bottom = height - r - 60;
-  const wanted = INSETS.flatMap((spec) => {
+  const wanted = CALLOUTS.flatMap((spec) => {
     const a = anchors[spec.id];
     if (!a) return [];
     const [ox, oy] = OFFSETS[spec.id];
     return [{ spec, a, cx: clamp(a.x + ox * width, r + 8, width - r - 8), cy: clamp(a.y + oy * height, top, bottom) }];
   });
-  // one column: keep circle + label clear of the next inset, then pull back into the frame
   wanted.sort((p, q) => p.cy - q.cy);
-  for (let i = 1; i < wanted.length; i++) {
-    wanted[i].cy = Math.max(wanted[i].cy, wanted[i - 1].cy + MIN_GAP);
-  }
+  for (let i = 1; i < wanted.length; i++) wanted[i].cy = Math.max(wanted[i].cy, wanted[i - 1].cy + MIN_GAP);
   const overflow = wanted.length ? wanted[wanted.length - 1].cy - bottom : 0;
   if (overflow > 0) for (const p of wanted) p.cy -= overflow;
   const placed = wanted.map((p) => {
@@ -135,23 +139,23 @@ export function Callouts({ layout, visible, anchors, width, height }: CalloutsPr
         )}
       </svg>
       {placed.map((p) => (
-          <div
-            key={p.spec.id}
-            style={{
-              position: "absolute",
-              left: p.cx - r,
-              top: p.cy - r,
-              display: "flex",
-              flexDirection: p.labelAbove ? "column-reverse" : "column",
-              alignItems: "center",
-              gap: 6,
-              width: CIRCLE_PX,
-              ...(p.labelAbove ? { top: "auto", bottom: height - (p.cy + r) } : {}),
-            }}
-          >
-            <Inset id={p.spec.id} />
-            <span style={{ ...labelStyle, marginLeft: -(LABEL_W - CIRCLE_PX) / 2 }}>{p.spec.label}</span>
-          </div>
+        <div
+          key={p.spec.id}
+          style={{
+            position: "absolute",
+            left: p.cx - r,
+            top: p.labelAbove ? "auto" : p.cy - r,
+            bottom: p.labelAbove ? height - (p.cy + r) : "auto",
+            display: "flex",
+            flexDirection: p.labelAbove ? "column-reverse" : "column",
+            alignItems: "center",
+            gap: 6,
+            width: CIRCLE_PX,
+          }}
+        >
+          <Ring size={CIRCLE_PX} track={tracks[p.spec.id]} />
+          <span style={{ ...labelStyle, marginLeft: -(LABEL_W - CIRCLE_PX) / 2 }}>{p.spec.label}</span>
+        </div>
       ))}
     </div>
   );

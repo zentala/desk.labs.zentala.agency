@@ -1,8 +1,11 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { useThree } from "@react-three/fiber";
+import { View } from "@react-three/drei";
 import type { DeskState } from "./scenePalette";
 import {
-  Stage,
+  SceneCanvas,
+  World,
+  InsetView,
   Person,
   SITTING,
   STANDING,
@@ -11,27 +14,28 @@ import {
   useScenePalette,
   useScrollProgress,
   scrollToProgress,
+  type FigureStyle,
+  type Vec3,
 } from "./kit";
 import { Desk } from "./desk/Desk";
-import { Sensor, sensorAnchors } from "./desk/Sensor";
-import { Monitor, MONITOR } from "./desk/Monitor";
-import { Chair } from "./desk/Chair";
+import { Sensor, sensorCenter } from "./desk/Sensor";
+import { Monitor, monitorPort } from "./desk/Monitor";
+import { Chair, type ChairStyle } from "./desk/Chair";
 import { DeskProps } from "./desk/Props";
 import { deskHeight, deskHeightCm } from "./desk/dims";
 import { Projector, type ProjectedAnchors } from "./callouts/Projector";
-import { Callouts } from "./callouts/Callouts";
+import { Callouts, type TrackRefs } from "./callouts/Callouts";
 import { useTween, useDirection, useElementSize } from "./desk/hooks";
 
 /**
- * DeskScene v3 — hero scene of the family (DESIGN.md §8), drawn with the kit.
+ * DeskScene v5 — hero scene of the family (DESIGN.md §8), drawn with the kit.
  *
  * One number drives everything: `t` (0 = sitting, 1 = standing). The desk
  * height, the person's pose, the chair, the screen readout and the toast all
  * derive from it. `t` comes from the buttons (600 ms tween) or, in `scroll`
- * mode, from the page scroll through a tall wrapper — the scroll IS the
- * stand-up moment. While the desk travels the screen says Rising / Lowering.
- * Zoom callouts (HTML over the canvas) appear in the settled states.
- * Reduced motion: no tween, no parallax, no scroll drive.
+ * mode, from the page scroll through a tall wrapper. One shared canvas holds
+ * three drei Views: the hero and two callout insets that are the same objects
+ * seen by other cameras. Reduced motion: no tween, no parallax, no scroll drive.
  */
 
 const SCROLL_TRAVEL_VH = 240;
@@ -56,34 +60,54 @@ function stateFor(t: number, direction: 1 | -1): DeskState {
   return direction > 0 ? "rising" : "lowering";
 }
 
+type Parts = "all" | "sensor" | "monitor";
+
 interface SceneContentProps {
   t: number;
   state: DeskState;
   breathe: boolean;
-  onProject: (points: ProjectedAnchors) => void;
+  parts: Parts;
+  chairStyle: ChairStyle;
+  figureStyle: FigureStyle;
+  onProject?: (points: ProjectedAnchors) => void;
 }
 
-/** Everything inside the canvas, derived from `t`. */
-function SceneContent({ t, state, breathe, onProject }: SceneContentProps) {
+/** The objects, derived from `t`. Insets ask for a subset. */
+function SceneContent({ t, state, breathe, parts, chairStyle, figureStyle, onProject }: SceneContentProps) {
   const palette = useScenePalette();
   const { invalidate } = useThree();
   useEffect(() => invalidate(), [t, palette, invalidate]);
 
   const heightM = deskHeight(t);
   const heightCm = deskHeightCm(t);
+  const port = monitorPort(heightM);
   const pose = blendPose(SITTING, STANDING, smoothstep(t));
 
   return (
     <>
       <Desk heightM={heightM} palette={palette} />
-      <Sensor heightM={heightM} palette={palette} monitorZ={MONITOR.z} breathe={breathe} />
-      <Monitor heightM={heightM} state={state} heightCm={heightCm} palette={palette} />
-      <DeskProps heightM={heightM} palette={palette} />
-      <Chair t={smoothstep(t)} palette={palette} />
-      <Person pose={pose} color={palette.figure} />
-      <Projector anchors={sensorAnchors(heightM, MONITOR.z)} onChange={onProject} />
+      <Sensor heightM={heightM} palette={palette} port={port} breathe={breathe} withBeam={parts !== "monitor"} />
+      {parts !== "sensor" && (
+        <Monitor heightM={heightM} state={state} heightCm={heightCm} palette={palette} screenPixels={parts === "all" ? undefined : 1024} />
+      )}
+      {parts !== "sensor" && <DeskProps heightM={heightM} palette={palette} />}
+      {parts === "all" && <Chair t={smoothstep(t)} palette={palette} chairStyle={chairStyle} />}
+      {parts === "all" && <Person pose={pose} color={palette.figure} figureStyle={figureStyle} />}
+      {parts === "all" && onProject && (
+        <Projector anchors={{ sensor: sensorCenter(heightM), cable: port }} onChange={onProject} />
+      )}
     </>
   );
+}
+
+/** Inset cameras follow the desk: A looks at the sensor from below and behind, B at the port from the right. */
+function insetCameras(heightM: number): { sensor: { position: Vec3; target: Vec3 }; cable: { position: Vec3; target: Vec3 } } {
+  const s = sensorCenter(heightM);
+  const p = monitorPort(heightM);
+  return {
+    sensor: { position: [s[0] + 0.26, s[1] - 0.3, s[2] - 0.42], target: [s[0] - 0.01, s[1], s[2]] },
+    cable: { position: [p[0] + 0.62, p[1] + 0.3, p[2] + 0.5], target: [p[0] - 0.04, p[1] + 0.02, p[2] + 0.02] },
+  };
 }
 
 export interface DeskSceneProps {
@@ -92,8 +116,10 @@ export interface DeskSceneProps {
   scroll?: boolean;
   /** loop sit/stand every 4 s; off under reduced motion */
   autoPlay?: boolean;
-  /** zoom callouts explaining the sensor, the cable and the beam */
+  /** zoom callouts: real views of the sensor and the cable */
   callouts?: boolean;
+  chairStyle?: ChairStyle;
+  figureStyle?: FigureStyle;
 }
 
 export default function DeskScene({
@@ -101,14 +127,18 @@ export default function DeskScene({
   scroll = false,
   autoPlay = false,
   callouts = true,
+  chairStyle = "sharp",
+  figureStyle = "faceted",
 }: DeskSceneProps) {
   const [reduced] = useState(prefersReducedMotion);
   const [coarse] = useState(hasCoarsePointer);
   const [narrow, setNarrow] = useState(false);
   const palette = useScenePalette();
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const figureRef = useRef<HTMLDivElement>(null);
-  const figureSize = useElementSize(figureRef);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const mainRef = useRef<HTMLDivElement>(null);
+  const tracks: TrackRefs = { sensor: useRef<HTMLDivElement>(null), cable: useRef<HTMLDivElement>(null) };
+  const mainSize = useElementSize(mainRef);
   const [anchors, setAnchors] = useState<ProjectedAnchors>({});
   const scrollMode = scroll && !reduced;
   const progress = useScrollProgress(wrapperRef, scrollMode);
@@ -136,6 +166,7 @@ export default function DeskScene({
   const direction = useDirection(t);
   const state = stateFor(t, direction);
   const settled = state === "sitting" || state === "standing";
+  const cams = insetCameras(deskHeight(t));
 
   const setState = (next: "sitting" | "standing") => {
     const target = next === "standing" ? 1 : 0;
@@ -156,13 +187,15 @@ export default function DeskScene({
     cursor: active ? "default" : "pointer",
   });
 
+  const content = (parts: Parts, onProject?: (p: ProjectedAnchors) => void) => (
+    <SceneContent t={t} state={state} breathe={!reduced} parts={parts} chairStyle={chairStyle} figureStyle={figureStyle} onProject={onProject} />
+  );
+
   const figure = (
     <div
-      ref={figureRef}
-      data-scene-figure
+      ref={boxRef}
       style={{
         position: "relative",
-        aspectRatio: narrow ? "4 / 5" : "16 / 10",
         borderRadius: 28,
         overflow: "hidden",
         // CSS variable, not `palette.bg`: the island is server-rendered light and
@@ -170,15 +203,40 @@ export default function DeskScene({
         background: "var(--color-bg)",
         touchAction: "pan-y",
       }}
-      role="img"
-      aria-label={`Desk scene: ${state}, desk at ${deskHeightCm(t)} cm`}
     >
-      <Stage palette={palette} parallax={!reduced && !coarse} lift={smoothstep(t)}>
-        <SceneContent t={t} state={state} breathe={!reduced} onProject={setAnchors} />
-      </Stage>
-      {callouts && !narrow && (
-        <Callouts layout="overlay" visible={settled} anchors={anchors} width={figureSize.width} height={figureSize.height} />
+      <div
+        ref={mainRef}
+        data-scene-figure
+        role="img"
+        aria-label={`Desk scene: ${state}, desk at ${deskHeightCm(t)} cm`}
+        style={{ position: "relative", zIndex: 1, aspectRatio: narrow ? "4 / 5" : "16 / 10" }}
+      >
+        {callouts && !narrow && (
+          <Callouts layout="overlay" visible={settled} anchors={anchors} width={mainSize.width} height={mainSize.height} tracks={tracks} />
+        )}
+      </div>
+      {callouts && narrow && (
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <Callouts layout="list" visible={settled} anchors={anchors} width={0} height={0} tracks={tracks} />
+        </div>
       )}
+      <SceneCanvas eventSource={boxRef}>
+        <View track={mainRef as RefObject<HTMLElement>} index={1}>
+          <World palette={palette} parallax={!reduced && !coarse} lift={smoothstep(t)}>
+            {content("all", setAnchors)}
+          </World>
+        </View>
+        {callouts && (
+          <InsetView track={tracks.sensor} visible={settled || narrow} index={2} palette={palette} fov={22} {...cams.sensor}>
+            {content("sensor")}
+          </InsetView>
+        )}
+        {callouts && (
+          <InsetView track={tracks.cable} visible={settled || narrow} index={3} palette={palette} fov={18} {...cams.cable}>
+            {content("monitor")}
+          </InsetView>
+        )}
+      </SceneCanvas>
     </div>
   );
 
@@ -193,16 +251,11 @@ export default function DeskScene({
     </div>
   );
 
-  const listCallouts = callouts && narrow && (
-    <Callouts layout="list" visible={settled} anchors={anchors} width={0} height={0} />
-  );
-
   if (!scrollMode) {
     return (
       <div>
         {figure}
         {buttons}
-        {listCallouts}
       </div>
     );
   }
@@ -212,7 +265,6 @@ export default function DeskScene({
       <div style={{ position: "sticky", top: 0, height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center" }}>
         {figure}
         {buttons}
-        {listCallouts}
       </div>
     </div>
   );

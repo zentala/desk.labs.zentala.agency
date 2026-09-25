@@ -1,8 +1,9 @@
 /**
  * Desk props you can name without a label (DESIGN.md §8.6): keyboard with a
  * key plate, mouse, a faceted cream mug with a handle, a closed notebook and
- * a small low-poly plant in a pot. Neutral except the plant's desaturated
- * sage (`material.plant`): colour is reserved for meaning (DESIGN.md §8.2).
+ * a small low-poly plant in a pot at the left end (it must not hide the
+ * cable on the right). Neutral except the plant's desaturated sage
+ * (`material.plant`): colour is reserved for meaning (DESIGN.md §8.2).
  */
 import type { ScenePalette } from "../scenePalette";
 import { Blob, Block, Rod } from "../kit";
@@ -42,7 +43,7 @@ export function DeskProps({ heightM, palette }: PropsProps) {
         </mesh>
       </group>
       {/* small plant: faceted pot, three stretched icosahedron leaves */}
-      <group position={[0.5, 0, -0.19]}>
+      <group position={[-0.52, 0, -0.19]}>
         <Rod radius={0.03} radiusTop={0.036} length={0.07} position={[0, 0.035, 0]} color={palette.fabric} />
         <Blob size={[0.07, 0.17, 0.07]} position={[0, 0.15, 0]} rotation={[0.1, 0, -0.15]} color={palette.plant} />
         <Blob size={[0.06, 0.13, 0.06]} position={[0.035, 0.12, 0.015]} rotation={[0.2, 0, 0.55]} color={palette.plant} />
