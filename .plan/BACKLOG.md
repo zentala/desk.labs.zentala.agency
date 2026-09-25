@@ -140,3 +140,22 @@ hardware, software and next steps, but rewrite it from verified current facts.
 Do not carry forward obsolete v0.1 claims about automatic desk control, old
 hardware architecture or an unfinished device as if they described the current
 product.
+
+- [ ] **`astro/src/styles/global.css` dark-mode tokens never activate** — the
+  `@theme { ... }` block that overrides `--color-bg`, `--color-ink`, etc. for
+  dark mode is nested inside `@media (prefers-color-scheme: dark) { }`
+  (around line 148). Tailwind v4 does not scope a nested `@theme` correctly
+  (unsupported inside other at-rules, gets hoisted), so every page using
+  `bg-bg`/`text-ink`/etc. utilities resolves to the DARK hex values
+  unconditionally, regardless of actual OS preference — confirmed via
+  `matchMedia('(prefers-color-scheme: dark)').matches === false` while
+  `getComputedStyle(document.body).backgroundColor` still returned the dark
+  `#14171C`. Found while fixing `astro/src/pages/lab/desk-scene.astro`
+  (W3-T3), where it manifested as "the lab page still renders dark v1
+  styles"; worked around there with a page-scoped `<style>` override, not a
+  site-wide fix. Real fix: move the dark values to plain `:root`-level custom
+  properties inside the media query (not `@theme`), or use Tailwind v4's
+  `light-dark()` support if applicable, then re-audit every page that
+  currently looks fine only because it happens to render dark-on-dark or
+  hasn't been checked against actual `prefers-color-scheme: light`.
+  (Importance: High — silently wrong on every real light-mode visitor; Points: 3)
