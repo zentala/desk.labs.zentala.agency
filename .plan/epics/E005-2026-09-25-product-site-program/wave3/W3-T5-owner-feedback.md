@@ -17,3 +17,9 @@ MUST:
    - "laser measures desk height → we know if you sit or stand".
    They can be HTML/SVG overlays anchored to projected 3D points, or 3D insets. They must stay legible and on-style.
 5. The sensor must be mounted **on the underside**, facing down, with visible line of sight to the floor. Make this explicit in the scene.
+
+## Correction (Paweł, same day): item 2 is withdrawn
+
+Do not aim for a hand-drawn look. The earlier simpler style (W3-T3) looked better. Its sharp shapes had form defined by light and shadow, and even the green legs showed their volume through shading. In v2 the legs read as one flat colour. The illustration must not pretend to be something it is not; it should use what real-time 3D does well.
+
+Direction: **honest low-poly, faceted light.** Crisp edges, a strong key light plus fill so faces differ in tone, clear cast and contact shadows.
