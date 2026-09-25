@@ -1,0 +1,33 @@
+---
+/**
+ * "How it works" — the DeskScene hero as a homepage section (E010 §2.3 copy,
+ * DESIGN.md §8). One eyebrow, one H2, one line, the scene; the WebP is the
+ * no-JS fallback. Buttons switch the state; callouts explain the product parts.
+ */
+import DeskScene from '../scene/DeskScene';
+---
+<section id="how-it-works" class="report-container pb-16 md:pb-20">
+  <p class="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-brand-text">How it works</p>
+  <h2 class="max-w-3xl text-3xl text-ink md:text-4xl">Plug in. It watches two things. It nudges, then checks.</h2>
+  <p class="mt-4 max-w-[65ch] text-lg leading-8 text-ink-muted">
+    The laser measures desk height, so it knows sitting from standing. The app watches keyboard and
+    mouse activity, so it knows if you are there.
+  </p>
+  <div class="mt-8">
+    <noscript>
+      <img
+        src="/images/scene/desk-scene.webp"
+        alt="A height-adjustable desk with a matchbox-sized sensor under the top, a laser beam to the floor, a monitor showing the desk height and a nudge, and a person at the desk"
+        width="960"
+        height="600"
+        loading="lazy"
+        style="width: 100%; border-radius: 28px;"
+      />
+    </noscript>
+    <DeskScene client:visible />
+  </div>
+  <p class="mt-4 text-sm leading-6 text-ink-muted">
+    After 40 minutes of sitting, a small card in the corner. When the desk rises, it sees it.
+    Every minute up buys back two minutes of sitting.
+  </p>
+</section>
