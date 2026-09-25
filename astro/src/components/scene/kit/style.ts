@@ -2,11 +2,11 @@
  * Scene kit — style constants (DESIGN.md §8).
  *
  * Kit rules, in one place:
- * 1. Every solid is a bevelled box (`Block`) or a low-segment cylinder (`Rod`)
- *    with a radius from `BEVEL`; never a per-mesh radius.
- * 2. One matte finish (`MeshLambertMaterial`, flat shading). Form is modelled
- *    by light, not by bevels: key + fill + sky give every face its own tone.
- *    The beam is the only glow.
+ * 1. Every solid is a sharp box (`Block`), a low-poly cylinder (`Rod`), a
+ *    faceted ellipsoid (`Blob`) or a faceted capsule (`Capsule`). No bevels,
+ *    no smooth normals: `flatShading` everywhere so facets read.
+ * 2. One matte finish (`MeshLambertMaterial`). Form is modelled by light:
+ *    key + fill + low sky give every face its own tone. The beam is the only glow.
  * 3. One light rig (`LIGHT`), one lens (`CAMERA`), one stage slab (`STAGE`).
  * 4. Colours come from `scenePalette.ts` via `useScenePalette()`; no hex here.
  * 5. Metric units everywhere; real proportions, fewer parts, never bigger parts.
@@ -14,21 +14,13 @@
 import { useEffect, useState } from "react";
 import { resolvePalette, type ScenePalette } from "../scenePalette";
 
-/** Bevel radii in metres (§8.1): just enough to catch a highlight line, never enough to soften form. */
-export const BEVEL = {
-  /** desk top, monitor body, chair seat, slab */
-  furniture: 0.004,
-  /** keyboard, sensor, paddle, buttons, small props */
-  small: 0.0015,
-  /** person limbs and torso */
-  body: 0.01,
-} as const;
-
-/** Segments for bevels and cylinders — enough to catch light, few enough to stay faceted. */
+/** Segment counts — few enough that every facet is visible, enough to read as round. */
 export const SEGMENTS = {
-  bevel: 3,
-  rod: 12,
+  rod: 8,
+  /** icosahedron detail for heads and cushions */
   head: 2,
+  capsuleCap: 2,
+  capsuleRadial: 7,
 } as const;
 
 /** Ghost silhouette opacity (§8.5). */

@@ -18,25 +18,33 @@ export interface Pose {
   knee: number;
 }
 
-/** Body proportions in metres: 1.75 m, ~7 heads (§8.5). Sole = hip.y − 0.95 when standing. */
+/**
+ * Gesture-drawing proportions in metres, 1.75 m tall: the figure is a stack of
+ * overlapping faceted ellipsoids (head, ribcage, pelvis, shoulders, hands,
+ * feet) and capsules (neck, limbs). Capsule `length` is the straight part;
+ * the total is `length + 2 × radius`. Sole = hip.y − 0.95 when standing.
+ */
 export const BODY = {
-  headRadius: 0.105,
-  neck: [0.08, 0.06, 0.08] as Vec3,
-  torso: [0.34, 0.5, 0.2] as Vec3,
-  upperArm: [0.085, 0.3, 0.085] as Vec3,
-  forearm: [0.075, 0.27, 0.075] as Vec3,
-  hand: [0.07, 0.03, 0.09] as Vec3,
-  thigh: [0.15, 0.44, 0.15] as Vec3,
-  shin: [0.12, 0.47, 0.12] as Vec3,
-  foot: [0.1, 0.05, 0.24] as Vec3,
-  shoulderX: 0.225,
+  head: [0.19, 0.22, 0.2] as Vec3,
+  neck: { radius: 0.035, length: 0.05 },
+  ribcage: [0.36, 0.4, 0.24] as Vec3,
+  pelvis: [0.3, 0.2, 0.22] as Vec3,
+  shoulderCap: [0.09, 0.08, 0.09] as Vec3,
+  upperArm: { radius: 0.045, length: 0.22 },
+  forearm: { radius: 0.04, length: 0.19 },
+  hand: [0.08, 0.03, 0.1] as Vec3,
+  thigh: { radius: 0.075, length: 0.32 },
+  shin: { radius: 0.055, length: 0.36 },
+  foot: [0.09, 0.05, 0.24] as Vec3,
+  shoulderX: 0.19,
+  shoulderY: 0.5,
   hipX: 0.09,
 } as const;
 
 /** Sitting at the desk on a 47 cm seat, hands on the keyboard. */
 export const SITTING: Pose = {
-  hip: [0, 0.53, 0.52],
-  torsoLean: -0.05,
+  hip: [0, 0.5, 0.52],
+  torsoLean: -0.06,
   shoulder: 0.55,
   elbow: 0.84,
   thigh: Math.PI / 2,

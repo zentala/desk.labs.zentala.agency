@@ -36,8 +36,14 @@ interface FixedColors {
   frame: string;
   /** token: color.material.fabric — chair seat and back, notebook: warm neutral */
   fabric: string;
-  /** token: color.material.figure — the simple person, a sand mannequin */
+  /** token: color.material.figure — the simple person, a sand figure */
   figure: string;
+  /** token: color.material.plant — the one desk plant, a desaturated sage that cannot be mistaken for PCB green */
+  plant: string;
+  /** column stages, top → bottom: `ink-muted`, dark `line` value, `ink` (DESIGN.md §8.6) */
+  stageTop: string;
+  stageMid: string;
+  stageBottom: string;
   /** token: color.ink — monitor, keyboard, chair base, cables */
   ink: string;
   /** token: color.ink-muted — key plate, mouse top, secondary UI text */
@@ -93,8 +99,12 @@ const DARK: ThemedColors = {
 const FIXED: FixedColors = {
   teal: "#1C7C74",
   frame: "#5B6270",
-  fabric: "#A9A398",
-  figure: "#D8CBAE",
+  plant: "#8FA08A",
+  stageTop: "#5B6270",
+  stageMid: "#2C313A",
+  stageBottom: "#1F2430",
+  fabric: "#6E6963",
+  figure: "#CDBE9F",
   ink: "#1F2430",
   inkMuted: "#5B6270",
   screen: "#FFFFFF",

@@ -37,7 +37,7 @@ function LightRig({ palette }: { palette: ScenePalette }) {
   );
 }
 
-/** Floor island: a bevelled slab plus a thinner rug on top. Top surface is y = 0. */
+/** Floor island: a sharp slab plus a thinner rug on top. Top surface is y = 0. */
 function Slab({ palette }: { palette: ScenePalette }) {
   return (
     <group>

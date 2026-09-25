@@ -52,7 +52,10 @@ Code lives in `astro/src/styles/global.css` (`@theme`); this block is the source
       "sweater":    { "$type": "color", "$value": { "light": "#2F4A9C", "dark": "#2F4A9C" } },
       "pcb":        { "$type": "color", "$value": { "light": "#0F6B3A", "dark": "#0F6B3A" } },
       "copper":     { "$type": "color", "$value": { "light": "#D9B26F", "dark": "#D9B26F" } },
-      "screen":     { "$type": "color", "$value": { "light": "#FFFFFF", "dark": "#FFFFFF" } }
+      "screen":     { "$type": "color", "$value": { "light": "#FFFFFF", "dark": "#FFFFFF" } },
+      "figure":     { "$type": "color", "$value": { "light": "#CDBE9F", "dark": "#CDBE9F" }, "$description": "the simple person: a sand figure, no skin tone; between desk top and fabric in value" },
+      "fabric":     { "$type": "color", "$value": { "light": "#6E6963", "dark": "#6E6963" }, "$description": "chair seat/back, notebook, pot: warm dark neutral that stays quiet" },
+      "plant":      { "$type": "color", "$value": { "light": "#8FA08A", "dark": "#8FA08A" }, "$description": "the one desk plant: desaturated sage, never mistaken for PCB green" }
     }
   },
   "font": {
@@ -244,14 +247,20 @@ the kit does not already know how to draw.
 
 The name is the promise: honest low-poly, and **form is defined by light**. The illustrations do
 not imitate hand drawing, clay or photographs; they use what flat-shaded geometry does well —
-crisp edges and clearly separated planes. (Owner decision 2026-09-25: the sharper W3-T3 look with
-every face shaded read as more natural than the softened v2; hand-drawn treatment rejected.)
+crisp edges and clearly separated planes. (Owner decisions 2026-09-25: the sharper W3-T3 look with
+every face shaded read as more natural than the softened v2; hand-drawn treatment rejected; W3-T6:
+no bevels at all, round things are faceted, the person is sketched from ellipsoids. An ink-outline
+A/B was tried and rejected: the contour muddied the facets.)
 
 ### 8.1 Art direction
 
-- **Crisp low-poly.** Every solid is a box or a low-segment cylinder. Bevels are tiny
-  (`BEVEL.furniture` 4 mm, `.small` 1.5 mm, `.body` 10 mm): enough to catch one highlight line,
-  never enough to round a form. If a bevel softens form reading, drop it.
+- **Sharp edges, no bevels, anywhere.** Every solid is a sharp box (`Block`), a low-segment
+  cylinder (`Rod`, 8 sides), a faceted ellipsoid (`Blob`: icosahedron detail 1 or 2, stretched) or
+  a faceted capsule (`Capsule`, 7 sides). A rounded corner serves nothing; an edge is where two
+  tones meet.
+- **Round things are faceted.** A head is a full sphere, but an icosahedron with `flatShading`, so
+  the facets read; a cushion is a flattened icosahedron; a mug is an 8-sided cylinder. Never
+  smooth normals, never `sphereGeometry` with 32 segments.
 - **Flat shading, one matte finish.** `MeshLambertMaterial`, `flatShading: true`, no image textures
   except the monitor screen. No metalness, no roughness maps, no reflections, no outlines (§11).
 - **Three tones per box.** The light rig (§8.3) is tuned so the top, the front (+Z) face and the
@@ -275,7 +284,7 @@ The site is paper, ink and one coral accent (§2). The illustrations follow the 
 | Paper / room | `bg`, `surface-2` (slab), `line` (rug) | floor island; dark: slab `line-strong`, rug `#5B6270` |
 | Wood | `material.desk-top` | the desk top only |
 | Hardware grey | `ink-muted` (frame), `ink` (monitor, keyboard, mouse, cables, chair base) | everything made of metal or plastic |
-| Soft neutral | `material.fabric` (chair), `material.figure` (person) | the things that are not the product |
+| Soft neutral | `material.fabric` (chair), `material.figure` (person), `material.plant` (one desaturated sage) | the things that are not the product |
 | **The product** | `material.pcb` + `material.copper` (sensor), **`brand`** (beam, dot) | the only green and the only coral in the room |
 | **App state** | `state.*` fill / tint / text | on the monitor screen only |
 | Paper props | `surface` (mug) | small, quiet |
@@ -321,14 +330,20 @@ The site is paper, ink and one coral accent (§2). The illustrations follow the 
 
 ### 8.5 The person
 
-A **sand mannequin** (`material.figure`): blocks and a faceted sphere, modelled by the same light
-as the desk. No face, no skin tone, no clothing — it says "someone" without saying who.
+A **sand figure** (`material.figure`) built the way artists sketch one: overlapping faceted
+ellipsoids for the masses and faceted capsules for the limbs, modelled by the same light as the
+desk. No face, no skin tone, no clothing, no boxes — it says "someone" without saying who.
 
-- Rig (`kit/Person.tsx`): head, neck, torso, upper arms, forearms, hands, thighs, shins, feet.
-  Joints are nested groups; poses are joint angles in `kit/poses.ts` (`SITTING`, `STANDING`;
-  later `walking`, `jumpingJacks`, `stretch`).
-- Proportions: 1.75 m, ~7 heads; torso 34 × 50 × 20 cm, thigh 44, shin 47. Feet are on the floor in
-  every settled pose and the hands are on the keyboard in both (angles solved by hand, see file).
+- Masses (`Blob`): head 19 × 22 × 20 cm (detail 2), ribcage 36 × 40 × 24, pelvis 30 × 20 × 22,
+  shoulder caps, hands, feet. Limbs (`Capsule`): neck, upper arm r 4.5 / 22, forearm r 4 / 19,
+  thigh r 7.5 / 32, shin r 5.5 / 36 (radius / straight length, cm). Masses overlap; joints are
+  hidden inside the capsule caps, so there are no visible seams to pose around.
+- Rig (`kit/Person.tsx`): joints are nested groups; poses are joint angles in `kit/poses.ts`
+  (`SITTING`, `STANDING`; later `walking`, `jumpingJacks`, `stretch`).
+- Proportions: 1.75 m, ~7 heads, shoulders wider than pelvis. Feet are on the floor in every
+  settled pose and the hands are on the keyboard in both (angles solved by hand, see file).
+- Tonal contrast is part of the figure: `material.figure` sits between the desk top (lighter) and
+  the chair fabric (darker), so the silhouette reads against both.
 - Poses blend by a single eased `t`; sit → stand is a hip rise plus a 7 cm step toward the desk.
   Chunky is fine, floating is not.
 - `finish="ghost"` (translucent, depth pre-pass + `EqualDepth`) exists for scenes that need
@@ -337,9 +352,12 @@ as the desk. No face, no skin tone, no clothing — it says "someone" without sa
 ### 8.6 Props and product parts
 
 - **Desk frame:** T-feet; three nested telescopic stages per column, *thinnest at the bottom*, each
-  stage 14 mm wider than the one below; two flat side brackets plus a slim crossbar flush under the
-  top. The desk's own paddle (4 memory buttons + up/down, `line`-coloured buttons on a `ink-muted`
-  body) sits under the front-right edge and its cable goes to the right column — the desk's system.
+  stage 14 mm wider than the one below. **Each stage has its own tone** so the nesting reads:
+  top `ink-muted`, middle the dark `line` value, bottom and feet `ink`; a 12 mm `ink` band sits
+  just under the mouth of each upper stage, the shadow it throws on the stage below. Two flat side
+  brackets plus a slim crossbar flush under the top. The desk's own paddle (4 memory buttons +
+  up/down, `line`-coloured buttons on a `ink-muted` body) sits under the front-right edge and its
+  cable goes to the right column — the desk's system.
 - **Sensor:** a 6 × 2.8 × 4.5 cm PCB box **on the underside** of the top, 1.5 cm inboard of the
   right edge, 10 cm from the back, lens facing down, beam straight to the floor outside the foot's
   footprint. One cable under the top, around the back edge and along it into the monitor. Two
@@ -348,7 +366,10 @@ as the desk. No face, no skin tone, no clothing — it says "someone" without sa
   height readout (236 px on a 1170 px canvas), a state chip (Sitting / Rising / Lowering /
   Standing), a slim timeline, and the toast only in the settled states. Nothing about state floats
   in 3D.
-- Keyboard, mouse, cream mug, notebook: the whole prop list.
+- Keyboard, mouse, an 8-sided cream mug with a handle, a notebook, and one small plant (faceted
+  pot, three stretched icosahedron leaves in `material.plant`, a desaturated sage that cannot be
+  read as PCB green): the whole prop list. The mug and the plant live on the right of the desk,
+  where the camera sees them past the figure.
 
 ### 8.7 Motion
 
@@ -374,7 +395,8 @@ as the desk. No face, no skin tone, no clothing — it says "someone" without sa
 
 | Do | Don't |
 |---|---|
-| three tones per box, crisp edges | bevels that round a form, outlines, "sketchy" lines |
+| three tones per box, sharp edges | any bevel or radius, outlines, "sketchy" lines |
+| faceted spheres, ellipsoids, capsules | smooth spheres, box people |
 | neutral furniture, coral only on the beam | teal legs, amber chairs, coral mugs |
 | true metric proportions | oversized "hero" monitors or tiny desks |
 | key + fill + low sky, contact shadows | point lights, rim lights, bloom, SSAO |
@@ -532,6 +554,7 @@ components, `container-prose` 1024 px, decision-record fields, Lucide-only icons
 | 2026-09-25 | Flat-shaded procedural 3D, `client:visible`, WebP fallback | Blender renders only; `client:load` | one code path = scene + image; no 3D in the shared bundle |
 | 2026-09-25 | 3D style = "faceted light": crisp low-poly, form by key + fill, neutral furniture, colour only for meaning | chamfered clay (v2), hand-drawn/outline treatment | the sharper shaded look read as more natural; the illustration must fit a paper-and-ink site |
 | 2026-09-25 | Zoom callouts as HTML/SVG over the canvas | 3D insets, drei `Html` | real text, tokens via CSS variables, no extra render passes |
+| 2026-09-25 | No bevels; faceted primitives; figure from ellipsoids and capsules; ink outlines rejected after A/B | chamfered blocks, box mannequin, inverted-hull outline | edges read as edges; a sketched figure reads as a person; the contour muddied the facets |
 | 2026-09-25 | Tokens as DTCG JSON in this file, built into `@theme` | separate `tokens.json` | one file for humans and agents; split later if a build step needs it |
 
 ## 15. Sources

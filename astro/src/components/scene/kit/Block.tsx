@@ -1,14 +1,15 @@
 /**
- * Scene kit — the three primitives every scene is drawn with (DESIGN.md §8.1).
+ * Scene kit — the primitives every scene is drawn with (DESIGN.md §8.1).
  *
- * `Block` bevelled box · `Rod` low-poly cylinder · `Cable` sagging tube.
+ * `Block` sharp box · `Rod` low-poly cylinder · `Blob` faceted ellipsoid ·
+ * `Capsule` faceted capsule · `Cable` sagging tube. No bevels anywhere: an
+ * edge is an edge (owner decision W3-T6). Round things are faceted spheres.
  * All take a `finish`: "matte" (default), "ghost" (people), "glow" (the beam).
- * Bevel radius is one of `BEVEL.*`; there is no free radius prop on purpose.
  */
 import { useMemo, type ReactNode } from "react";
-import { RoundedBox } from "@react-three/drei";
 import * as THREE from "three";
-import { BEVEL, GHOST_OPACITY, SEGMENTS } from "./style";
+import { GHOST_OPACITY, SEGMENTS } from "./style";
+
 
 /**
  * "ghost" is drawn in two passes so overlapping limbs never double-blend:
@@ -45,58 +46,76 @@ export function Surface({ color, finish = "matte" }: FinishProps) {
   return <meshLambertMaterial color={color} flatShading />;
 }
 
-interface BlockProps extends FinishProps {
-  /** width, height, depth in metres */
-  size: Vec3;
+interface PlacedProps extends FinishProps {
   position?: Vec3;
   rotation?: Vec3;
-  bevel?: keyof typeof BEVEL;
   castShadow?: boolean;
   receiveShadow?: boolean;
   renderOrder?: number;
   children?: ReactNode;
 }
 
-/** Bevelled box. The radius is clamped so tiny parts never invert. */
-export function Block({
-  size,
-  position,
-  rotation,
-  bevel = "furniture",
-  color,
-  finish,
-  castShadow = true,
-  receiveShadow = true,
-  renderOrder,
-  children,
-}: BlockProps) {
-  const radius = Math.min(BEVEL[bevel], Math.min(...size) * 0.45);
+interface BlockProps extends PlacedProps {
+  /** width, height, depth in metres */
+  size: Vec3;
+}
+
+/** Sharp box. */
+export function Block({ size, position, rotation, color, finish, castShadow = true, receiveShadow = true, renderOrder, children }: BlockProps) {
   return (
-    <RoundedBox
-      args={size}
-      radius={radius}
-      bevelSegments={SEGMENTS.bevel}
-      creaseAngle={0.4}
+    <mesh position={position} rotation={rotation} castShadow={castShadow} receiveShadow={receiveShadow} renderOrder={renderOrder}>
+      <boxGeometry args={size} />
+      <Surface color={color} finish={finish} />
+      {children}
+    </mesh>
+  );
+}
+
+interface BlobProps extends PlacedProps {
+  /** full diameters in metres (x, y, z): a sphere when equal, an ellipsoid otherwise */
+  size: Vec3;
+  /** icosahedron detail: 1 (80 faces) for limbs, 2 (320) for a head */
+  detail?: 1 | 2;
+}
+
+/** Faceted ellipsoid: an icosahedron stretched to `size`. */
+export function Blob({ size, detail = 1, position, rotation, color, finish, castShadow = true, receiveShadow = true, renderOrder }: BlobProps) {
+  return (
+    <mesh
       position={position}
       rotation={rotation}
+      scale={[size[0] / 2, size[1] / 2, size[2] / 2]}
       castShadow={castShadow}
       receiveShadow={receiveShadow}
       renderOrder={renderOrder}
     >
+      <icosahedronGeometry args={[1, detail]} />
       <Surface color={color} finish={finish} />
-      {children}
-    </RoundedBox>
+    </mesh>
   );
 }
 
-interface RodProps extends FinishProps {
+interface CapsuleProps extends PlacedProps {
+  radius: number;
+  /** straight length between the hemisphere centres; total = length + 2 × radius */
+  length: number;
+}
+
+/** Faceted capsule along local Y. */
+export function Capsule({ radius, length, position, rotation, color, finish, castShadow = true, receiveShadow = true, renderOrder }: CapsuleProps) {
+  return (
+    <mesh position={position} rotation={rotation} castShadow={castShadow} receiveShadow={receiveShadow} renderOrder={renderOrder}>
+      <capsuleGeometry args={[radius, length, SEGMENTS.capsuleCap, SEGMENTS.capsuleRadial]} />
+      <Surface color={color} finish={finish} />
+    </mesh>
+  );
+}
+
+interface RodProps extends PlacedProps {
   radius: number;
   /** top radius, defaults to `radius` */
   radiusTop?: number;
   length: number;
-  position?: Vec3;
-  rotation?: Vec3;
-  castShadow?: boolean;
 }
 
 /** Low-poly cylinder along local Y. */
