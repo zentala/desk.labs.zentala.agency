@@ -73,22 +73,26 @@ const { id = 'photo-gallery', eyebrow = 'Prototype gallery', title, description,
 <style>
   .photo-gallery { margin: 2.5rem 0 3rem; }
   .photo-gallery__intro { display: flex; align-items: end; justify-content: space-between; gap: 2rem; margin-bottom: 1rem; }
-  .photo-gallery__eyebrow { margin: 0 0 .35rem; color: var(--color-brand-green); font-size: .7rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
-  .photo-gallery h3 { margin: 0; color: var(--color-gray-100); font-size: clamp(1.35rem, 2vw, 1.8rem); }
-  .photo-gallery__description { max-width: 34rem; margin: 0; color: var(--color-muted); font-size: .9rem; line-height: 1.6; }
-  .photo-gallery__stage { overflow: hidden; border: 1px solid var(--color-report-divider); background: #0d0d13; }
+  .photo-gallery__eyebrow { margin: 0 0 .35rem; color: var(--color-brand-text); font-size: .7rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+  .photo-gallery h3 { margin: 0; color: var(--color-ink); font-size: clamp(1.35rem, 2vw, 1.8rem); }
+  .photo-gallery__description { max-width: 34rem; margin: 0; color: var(--color-ink-muted); font-size: .9rem; line-height: 1.6; }
+  .photo-gallery__stage { overflow: hidden; border: 1px solid var(--color-line); background: #0d0d13; }
   .photo-gallery__main-button { position: relative; display: block; width: 100%; padding: 0; border: 0; background: transparent; cursor: zoom-in; }
   .photo-gallery__main-image { display: block; width: 100%; height: min(34rem, 62svh); object-fit: contain; background: #09090d; }
   .photo-gallery__zoom-hint { position: absolute; right: 1rem; bottom: 1rem; padding: .45rem .65rem; color: #e5e7eb; background: rgba(10, 10, 15, .78); font-size: .7rem; letter-spacing: .05em; opacity: 0; transition: opacity .2s ease; }
   .photo-gallery__main-button:hover .photo-gallery__zoom-hint, .photo-gallery__main-button:focus-visible .photo-gallery__zoom-hint { opacity: 1; }
-  .photo-gallery__caption { display: flex; justify-content: space-between; gap: 1rem; padding: .8rem 1rem; border-top: 1px solid var(--color-report-divider); }
+  /* The caption sits inside .photo-gallery__stage (the intentionally dark
+     photo-viewing surface, #0d0d13), not on the page background, so it keeps
+     fixed light-on-dark colours rather than the `ink`/`ink-muted` tokens
+     (which are dark-on-light in light mode and would be near-invisible here). */
+  .photo-gallery__caption { display: flex; justify-content: space-between; gap: 1rem; padding: .8rem 1rem; border-top: 1px solid rgba(255, 255, 255, .12); }
   .photo-gallery__caption-title { color: #f3f4f6; font-size: .9rem; font-weight: 600; }
-  .photo-gallery__caption-detail { color: var(--color-muted); font-size: .8rem; text-align: right; }
+  .photo-gallery__caption-detail { color: #9ca3af; font-size: .8rem; text-align: right; }
   .photo-gallery__thumbs { display: grid; grid-template-columns: repeat(auto-fit, minmax(4.8rem, 1fr)); gap: .55rem; margin-top: .7rem; }
   .photo-gallery__thumb { min-width: 0; padding: .2rem; border: 1px solid transparent; background: transparent; cursor: pointer; opacity: .58; transition: border-color .2s ease, opacity .2s ease, transform .2s ease; }
-  .photo-gallery__thumb:hover, .photo-gallery__thumb:focus-visible, .photo-gallery__thumb.is-selected { border-color: var(--color-brand-green); opacity: 1; transform: translateY(-2px); }
+  .photo-gallery__thumb:hover, .photo-gallery__thumb:focus-visible, .photo-gallery__thumb.is-selected { border-color: var(--color-brand); opacity: 1; transform: translateY(-2px); }
   .photo-gallery__thumb img { display: block; width: 100%; height: 4.5rem; object-fit: cover; }
-  .photo-gallery__dialog { width: min(92vw, 72rem); max-height: 92vh; padding: 2.5rem .75rem .75rem; border: 1px solid var(--color-report-divider); background: #09090d; }
+  .photo-gallery__dialog { width: min(92vw, 72rem); max-height: 92vh; padding: 2.5rem .75rem .75rem; border: 1px solid var(--color-line); background: #09090d; }
   .photo-gallery__dialog::backdrop { background: rgba(0, 0, 0, .86); }
   .photo-gallery__dialog-image { display: block; width: 100%; max-height: 82vh; object-fit: contain; }
   .photo-gallery__close { position: absolute; top: .35rem; right: .7rem; color: #e5e7eb; border: 0; background: transparent; font-size: 2rem; line-height: 1; cursor: pointer; }

@@ -36,12 +36,12 @@ const steps: Step[] = [
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-24 border-t border-gray-800/50">
+    <section id="how-it-works" className="py-24 border-t border-line/50">
       <div className="section-container">
         <h2 className="text-center text-3xl font-bold sm:text-4xl">
           How it works
         </h2>
-        <p className="mx-auto mt-4 max-w-xl text-center text-lg text-muted">
+        <p className="mx-auto mt-4 max-w-xl text-center text-lg text-ink-muted">
           Three steps. Two minutes. No cloud. No account.
         </p>
 
@@ -49,21 +49,21 @@ export default function HowItWorks() {
           {steps.map((step) => (
             <div
               key={step.number}
-              className="relative rounded-2xl border border-gray-800 bg-dark-800 p-8"
+              className="relative rounded-2xl border border-line bg-surface p-8"
             >
               <div className="mb-4 text-4xl">{step.icon}</div>
-              <div className="mb-2 text-xs font-bold uppercase tracking-widest text-brand-green">
+              <div className="mb-2 text-xs font-bold uppercase tracking-widest text-brand-text">
                 Step {step.number}
               </div>
-              <h3 className="text-xl font-bold text-gray-100">{step.title}</h3>
-              <p className="mt-3 text-muted">{step.description}</p>
+              <h3 className="text-xl font-bold text-ink">{step.title}</h3>
+              <p className="mt-3 text-ink-muted">{step.description}</p>
             </div>
           ))}
         </div>
 
         <div className="mt-12 text-center">
-          <div className="inline-flex items-center gap-3 rounded-full border border-gray-700 bg-dark-700 px-6 py-3 text-sm text-muted">
-            <span className="inline-block h-2 w-2 rounded-full bg-brand-green" />
+          <div className="inline-flex items-center gap-3 rounded-full border border-line bg-surface-2 px-6 py-3 text-sm text-ink-muted">
+            <span className="inline-block h-2 w-2 rounded-full bg-brand-strong" />
             All data stays on your computer. No cloud. No tracking. No account needed.
           </div>
         </div>

@@ -73,12 +73,12 @@ const tiers: Tier[] = [
 
 export default function Pricing() {
   return (
-    <section id="pricing" className="py-24 border-t border-gray-800/50">
+    <section id="pricing" className="py-24 border-t border-line/50">
       <div className="section-container">
         <h2 className="text-center text-3xl font-bold sm:text-4xl">
           Choose your kit
         </h2>
-        <p className="mx-auto mt-4 max-w-2xl text-center text-lg text-muted">
+        <p className="mx-auto mt-4 max-w-2xl text-center text-lg text-ink-muted">
           Pre-order now. Production starts when we hit the threshold.
           Full refund if we don't reach it.
         </p>
@@ -89,7 +89,7 @@ export default function Pricing() {
           ))}
         </div>
 
-        <p className="mt-8 text-center text-sm text-gray-500">
+        <p className="mt-8 text-center text-sm text-ink-muted">
           All prices include sensor hardware + open source app.
           Shipping calculated at checkout. EU shipping from Poland.
         </p>
@@ -103,44 +103,44 @@ function TierCard({ tier }: { tier: Tier }) {
     <div
       className={`relative flex flex-col rounded-2xl border p-8 ${
         tier.highlighted
-          ? 'border-brand-green/50 bg-dark-700 shadow-glow'
-          : 'border-gray-800 bg-dark-800'
+          ? 'border-brand-strong/50 bg-surface-2 shadow-2'
+          : 'border-line bg-surface'
       }`}
     >
       {tier.highlighted && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-green px-4 py-1 text-xs font-bold text-dark-900">
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-strong px-4 py-1 text-xs font-bold text-on-brand">
           Most Popular
         </div>
       )}
 
       <div className="mb-6">
-        <h3 className="text-xl font-bold text-gray-100">{tier.name}</h3>
-        <p className="mt-1 text-sm text-muted">{tier.tagline}</p>
+        <h3 className="text-xl font-bold text-ink">{tier.name}</h3>
+        <p className="mt-1 text-sm text-ink-muted">{tier.tagline}</p>
       </div>
 
       <div className="mb-6">
-        <span className="text-4xl font-extrabold text-gray-100">
+        <span className="text-4xl font-extrabold text-ink">
           &euro;{tier.price}
         </span>
-        <span className="ml-1 text-muted">one-time</span>
+        <span className="ml-1 text-ink-muted">one-time</span>
       </div>
 
       <ul className="mb-8 flex-1 space-y-3">
         {tier.contents.map((item) => (
-          <li key={item} className="flex items-start gap-2 text-sm text-gray-300">
-            <span className="mt-0.5 text-brand-green">&#10003;</span>
+          <li key={item} className="flex items-start gap-2 text-sm text-ink-muted">
+            <span className="mt-0.5 text-brand-text">&#10003;</span>
             {item}
           </li>
         ))}
       </ul>
 
       {tier.urgencyLabel && (
-        <p className="mb-3 text-xs font-medium text-amber-400">
+        <p className="mb-3 text-xs font-medium text-state-sitting-text">
           {tier.urgencyLabel}
         </p>
       )}
       {tier.thresholdNote && (
-        <p className="mb-6 text-xs text-muted">{tier.thresholdNote}</p>
+        <p className="mb-6 text-xs text-ink-muted">{tier.thresholdNote}</p>
       )}
 
       <a
@@ -150,8 +150,8 @@ function TierCard({ tier }: { tier: Tier }) {
         onClick={() => trackEvent('preorder-click', { tier: tier.key })}
         className={`block w-full rounded-full py-3 text-center font-semibold transition-all ${
           tier.highlighted
-            ? 'bg-brand-green text-dark-900 hover:bg-brand-green-light'
-            : 'border border-gray-600 text-gray-300 hover:border-gray-400 hover:text-white'
+            ? 'bg-brand-strong text-on-brand hover:bg-brand'
+            : 'border border-line-strong text-ink-muted hover:border-line-strong hover:text-ink'
         }`}
       >
         Pre-order &mdash; &euro;{tier.price}

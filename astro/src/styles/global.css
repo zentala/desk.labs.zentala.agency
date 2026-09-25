@@ -118,28 +118,6 @@
   --breakpoint-lg: 1024px;
   --breakpoint-xl: 1280px;
 
-  /* -- v1 -> v2 aliases (DESIGN.md §13) --
-     Kept so pages still using the v1 names keep rendering during migration.
-     Remove once every consumer has moved to the v2 names above. */
-  --color-dark-900: #14171C;
-  --color-dark-800: #1E2229;
-  --color-dark-700: #272C35;
-  --color-dark-600: #2C313A;
-  --color-dark-500: #6B7280;
-  --color-brand-green: #C9461F;
-  --color-brand-green-dark: #B8401D;
-  --color-brand-green-light: #E4572E;
-  --color-muted: #5B6270;
-  --shadow-glow: var(--shadow-beam);
-  --shadow-card: var(--shadow-1);
-  --color-report-surface: #FFFFFF;
-  --color-report-muted: #5B6270;
-  --color-report-divider: #E4DED4;
-  --color-status-in-use: #1F7A44;
-  --color-status-in-review: #8A5A00;
-  --color-status-planned: #1B5E8A;
-  --color-status-in-design: #5B4A8A;
-  --color-status-archived: #5A6A80;
 }
 
 /* Dark theme: override the same custom properties by OS preference
@@ -194,26 +172,6 @@
     --shadow-1: 0 0 0 1px #2C313A;
     --shadow-2: 0 0 0 1px #2C313A, 0 12px 32px -12px rgba(0, 0, 0, .6);
     --shadow-beam: 0 0 6px #FF7A55;
-
-    /* v1 aliases stay pointed at the same dark palette (dark is now the
-       `prefers-color-scheme: dark` theme, not the only theme). */
-    --color-dark-900: #14171C;
-    --color-dark-800: #1E2229;
-    --color-dark-700: #272C35;
-    --color-dark-600: #2C313A;
-    --color-dark-500: #6B7280;
-    --color-brand-green: #FF7A55;
-    --color-brand-green-dark: #FF7A55;
-    --color-brand-green-light: #FF7A55;
-    --color-muted: #A3A9B5;
-    --color-report-surface: #1E2229;
-    --color-report-muted: #A3A9B5;
-    --color-report-divider: #2C313A;
-    --color-status-in-use: #4CC77A;
-    --color-status-in-review: #F2B33D;
-    --color-status-planned: #6FB8E8;
-    --color-status-in-design: #A996E0;
-    --color-status-archived: #8C9AAE;
   }
 }
 
@@ -274,13 +232,43 @@
   .section-container { @apply mx-auto max-w-6xl px-4 sm:px-6 lg:px-8; }
   .report-container { @apply mx-auto max-w-5xl px-5 sm:px-8; }
   .report-link { @apply text-brand-text underline decoration-brand-text/40 underline-offset-4 transition hover:text-brand; }
-  .report-divider { @apply border-t border-line; }
+  .hairline-t { @apply border-t border-line; }
 
   /* Global visible focus ring (DESIGN.md §9): 2px `focus` ring, 2px offset,
      on every interactive element. */
   .focus-ring {
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-bg;
   }
+
+}
+
+/* Typography-plugin prose, mapped to the v2 tokens instead of the plugin's
+   own grey scale (DESIGN.md §3, §13). Use `class="prose prose-site"`
+   everywhere long-form content renders; never `prose-invert`.
+   Deliberately UNLAYERED: the typography plugin's `.prose` utility sets
+   these same `--tw-prose-*` custom properties inside its own (higher-
+   priority) utilities layer, so a `@layer components` rule here loses the
+   cascade and the plugin's hardcoded grey scale wins instead of the tokens
+   (found via axe: dark-mode body text at ~oklch(0.373) on a #14171C bg,
+   2026-09-26). Unlayered author CSS always outranks any `@layer` rule, so
+   this always wins over `.prose` without needing `!important`. */
+.prose-site {
+  --tw-prose-body: var(--color-ink-muted);
+  --tw-prose-headings: var(--color-ink);
+  --tw-prose-lead: var(--color-ink-muted);
+  --tw-prose-links: var(--color-brand-text);
+  --tw-prose-bold: var(--color-ink);
+  --tw-prose-counters: var(--color-ink-muted);
+  --tw-prose-bullets: var(--color-line-strong);
+  --tw-prose-hr: var(--color-line);
+  --tw-prose-quotes: var(--color-ink);
+  --tw-prose-quote-borders: var(--color-line);
+  --tw-prose-captions: var(--color-ink-muted);
+  --tw-prose-code: var(--color-ink);
+  --tw-prose-pre-code: var(--color-ink);
+  --tw-prose-pre-bg: var(--color-surface-2);
+  --tw-prose-th-borders: var(--color-line);
+  --tw-prose-td-borders: var(--color-line);
 }
 
 /* Global focus fallback (DESIGN.md §9): covers interactive elements that

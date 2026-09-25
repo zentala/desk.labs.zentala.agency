@@ -65,9 +65,9 @@ const rows: ComparisonRow[] = [
 ];
 
 const STATUS_ICON: Record<string, { symbol: string; color: string }> = {
-  yes: { symbol: '\u2713', color: 'text-brand-green' },
-  no: { symbol: '\u2717', color: 'text-red-400' },
-  partial: { symbol: '\u26A0', color: 'text-amber-400' },
+  yes: { symbol: '\u2713', color: 'text-brand-text' },
+  no: { symbol: '\u2717', color: 'text-state-nudge-text' },
+  partial: { symbol: '\u26A0', color: 'text-state-sitting-text' },
 };
 
 function CellContent({ value }: { value: string }) {
@@ -77,7 +77,7 @@ function CellContent({ value }: { value: string }) {
       <span className={`text-lg font-bold ${icon.color}`}>{icon.symbol}</span>
     );
   }
-  return <span className="text-sm text-gray-300">{value}</span>;
+  return <span className="text-sm text-ink-muted">{value}</span>;
 }
 
 const COLUMNS = [
@@ -89,12 +89,12 @@ const COLUMNS = [
 
 export default function ComparisonTable() {
   return (
-    <section id="compare" className="py-24 border-t border-gray-800/50">
+    <section id="compare" className="py-24 border-t border-line/50">
       <div className="section-container">
         <h2 className="text-center text-3xl font-bold sm:text-4xl">
           How zntlDesk compares
         </h2>
-        <p className="mx-auto mt-4 max-w-2xl text-center text-lg text-muted">
+        <p className="mx-auto mt-4 max-w-2xl text-center text-lg text-ink-muted">
           Not another app that you forget to open. Hardware-level awareness that
           works without thinking.
         </p>
@@ -104,7 +104,7 @@ export default function ComparisonTable() {
           <table className="w-full min-w-[640px] border-separate border-spacing-0">
             <thead>
               <tr>
-                <th className="sticky left-0 bg-dark-900 p-4 text-left text-sm font-semibold text-gray-400">
+                <th className="sticky left-0 bg-bg p-4 text-left text-sm font-semibold text-ink-muted">
                   Feature
                 </th>
                 {COLUMNS.map((col) => (
@@ -112,8 +112,8 @@ export default function ComparisonTable() {
                     key={col.key}
                     className={`p-4 text-center text-sm font-semibold ${
                       col.highlight
-                        ? 'text-brand-green bg-dark-700 rounded-t-xl'
-                        : 'text-gray-400'
+                        ? 'text-brand-text bg-surface-2 rounded-t-xl'
+                        : 'text-ink-muted'
                     }`}
                   >
                     {col.label}
@@ -127,9 +127,9 @@ export default function ComparisonTable() {
                 return (
                   <tr
                     key={row.feature}
-                    className="border-t border-gray-800/50"
+                    className="border-t border-line/50"
                   >
-                    <td className="sticky left-0 bg-dark-900 p-4 text-sm text-gray-300 font-medium">
+                    <td className="sticky left-0 bg-bg p-4 text-sm text-ink-muted font-medium">
                       {row.feature}
                     </td>
                     {COLUMNS.map((col) => (
@@ -137,7 +137,7 @@ export default function ComparisonTable() {
                         key={col.key}
                         className={`p-4 text-center ${
                           col.highlight
-                            ? `bg-dark-700 ${isLast ? 'rounded-b-xl' : ''}`
+                            ? `bg-surface-2 ${isLast ? 'rounded-b-xl' : ''}`
                             : ''
                         }`}
                       >

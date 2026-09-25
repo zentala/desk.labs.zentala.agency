@@ -48,13 +48,13 @@ export default function WaitlistForm({ compact = false }: Props) {
 
   if (status === 'success') {
     return (
-      <div className={`rounded-2xl border border-brand-green/30 bg-dark-800 ${compact ? 'p-4' : 'p-8'} text-center`}>
-        <p className="text-lg font-semibold text-brand-green">
+      <div className={`rounded-2xl border border-brand-strong/30 bg-surface ${compact ? 'p-4' : 'p-8'} text-center`}>
+        <p className="text-lg font-semibold text-brand-text">
           {errorFallback
             ? "Thanks! We've noted your email."
             : "Thanks! We'll notify you when the kit is ready."}
         </p>
-        <p className="mt-2 text-sm text-muted">
+        <p className="mt-2 text-sm text-ink-muted">
           No spam. Updates only when something ships.
         </p>
       </div>
@@ -62,13 +62,13 @@ export default function WaitlistForm({ compact = false }: Props) {
   }
 
   return (
-    <div className={`rounded-2xl border border-gray-800 bg-dark-800 ${compact ? 'p-4' : 'p-8'}`}>
+    <div className={`rounded-2xl border border-line bg-surface ${compact ? 'p-4' : 'p-8'}`}>
       {!compact && (
         <div className="mb-6 text-center">
-          <h3 className="text-xl font-bold text-gray-100">
+          <h3 className="text-xl font-bold text-ink">
             Not ready to pre-order?
           </h3>
-          <p className="mt-2 text-muted">
+          <p className="mt-2 text-ink-muted">
             Join the waitlist — we'll let you know when the kit ships.
           </p>
         </div>
@@ -81,18 +81,18 @@ export default function WaitlistForm({ compact = false }: Props) {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="your@email.com"
           required
-          className="flex-1 rounded-full border border-gray-700 bg-dark-900 px-5 py-3 text-gray-100 placeholder-gray-500 outline-none transition-colors focus:border-brand-green"
+          className="flex-1 rounded-full border border-line bg-bg px-5 py-3 text-ink placeholder-ink-muted outline-none transition-colors focus:border-brand-strong"
         />
         <button
           type="submit"
           disabled={status === 'loading' || !isValidEmail(email)}
-          className="rounded-full bg-brand-green px-8 py-3 font-semibold text-dark-900 transition-all hover:bg-brand-green-light disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded-full bg-brand-strong px-8 py-3 font-semibold text-on-brand transition-all hover:bg-brand disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {status === 'loading' ? 'Joining...' : 'Join Waitlist'}
         </button>
       </form>
 
-      <p className="mt-3 text-center text-xs text-gray-500">
+      <p className="mt-3 text-center text-xs text-ink-muted">
         No spam. Updates only when something ships.
       </p>
     </div>

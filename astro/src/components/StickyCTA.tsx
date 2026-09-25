@@ -37,18 +37,18 @@ export default function StickyCTA() {
         visible ? 'translate-y-0' : 'translate-y-full'
       }`}
     >
-      <div className="bg-dark-900/90 backdrop-blur-sm border-t border-gray-800 px-4 py-3">
+      <div className="bg-bg/90 backdrop-blur-sm border-t border-line px-4 py-3">
         <div className="mx-auto flex max-w-6xl items-center justify-center gap-4">
           <a
             href="#pricing"
             onClick={() => trackEvent('preorder-click', { source: 'sticky-bar' })}
-            className="rounded-full bg-brand-green px-6 py-2 text-sm font-semibold text-dark-900 transition-all hover:bg-brand-green-light"
+            className="rounded-full bg-brand-strong px-6 py-2 text-sm font-semibold text-on-brand transition-all hover:bg-brand"
           >
             Pre-order Dev Kit &mdash; &euro;{PRICING.basic.price}
           </a>
           <a
             href="#waitlist"
-            className="text-sm text-muted transition-colors hover:text-white"
+            className="text-sm text-ink-muted transition-colors hover:text-ink"
           >
             Join Waitlist
           </a>

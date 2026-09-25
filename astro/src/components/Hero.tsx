@@ -8,21 +8,21 @@ export default function Hero() {
   return (
     <section className="relative min-h-[90vh] flex items-center overflow-hidden">
       {/* Background gradient accents */}
-      <div className="absolute -right-40 top-20 h-96 w-96 rounded-full bg-brand-green/5 blur-3xl" />
+      <div className="absolute -right-40 top-20 h-96 w-96 rounded-full bg-brand-strong/5 blur-3xl" />
       <div className="absolute -left-40 bottom-20 h-80 w-80 rounded-full bg-emerald-500/5 blur-3xl" />
 
       <div className="section-container py-20 text-center">
-        <p className="mb-6 text-sm font-medium uppercase tracking-[0.3em] text-brand-green">
+        <p className="mb-6 text-sm font-medium uppercase tracking-[0.3em] text-brand-text">
           Open Source Desk Sensor
         </p>
 
         <h1 className="mx-auto max-w-4xl text-4xl font-extrabold leading-tight sm:text-5xl md:text-6xl lg:text-7xl">
           Your standing desk is{' '}
-          <span className="text-brand-green">useless</span>{' '}
+          <span className="text-brand-text">useless</span>{' '}
           if you never stand.
         </h1>
 
-        <p className="mx-auto mt-8 max-w-2xl text-lg text-muted sm:text-xl">
+        <p className="mx-auto mt-8 max-w-2xl text-lg text-ink-muted sm:text-xl">
           A tiny sensor that mounts under your desk, tracks your sitting and standing time,
           and actually gets you to move. Built by a developer who sat 10+ hours a day.
         </p>
@@ -36,7 +36,7 @@ export default function Hero() {
           </a>
         </div>
 
-        <p className="mt-6 text-sm text-gray-500">
+        <p className="mt-6 text-sm text-ink-muted">
           Ships when we hit {PRICING.basic.threshold} pre-orders · EU shipping from Poland
         </p>
       </div>

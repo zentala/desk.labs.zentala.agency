@@ -59,10 +59,10 @@ export default function ExitPopup() {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="relative mx-4 w-full max-w-md rounded-2xl border border-gray-800 bg-dark-800 p-8">
+      <div className="relative mx-4 w-full max-w-md rounded-2xl border border-line bg-surface p-8">
         <button
           onClick={close}
-          className="absolute right-4 top-4 text-gray-500 transition-colors hover:text-white"
+          className="absolute right-4 top-4 text-ink-muted transition-colors hover:text-ink"
           aria-label="Close popup"
         >
           &#10005;
@@ -70,7 +70,7 @@ export default function ExitPopup() {
 
         {submitted ? (
           <div className="text-center">
-            <p className="text-lg font-semibold text-brand-green">
+            <p className="text-lg font-semibold text-brand-text">
               {errorFallback
                 ? "Thanks! We've noted your email."
                 : "Thanks! We'll notify you when the kit is ready."}
@@ -78,10 +78,10 @@ export default function ExitPopup() {
           </div>
         ) : (
           <>
-            <h3 className="mb-2 text-xl font-bold text-gray-100">
+            <h3 className="mb-2 text-xl font-bold text-ink">
               Wait! Join 100+ people on our waitlist
             </h3>
-            <p className="mb-6 text-sm text-muted">
+            <p className="mb-6 text-sm text-ink-muted">
               Get notified when the desk sensor kit ships. No spam.
             </p>
             <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
@@ -91,12 +91,12 @@ export default function ExitPopup() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
                 required
-                className="flex-1 rounded-full border border-gray-700 bg-dark-900 px-5 py-3 text-gray-100 placeholder-gray-500 outline-none focus:border-brand-green"
+                className="flex-1 rounded-full border border-line bg-bg px-5 py-3 text-ink placeholder-ink-muted outline-none focus:border-brand-strong"
               />
               <button
                 type="submit"
                 aria-label="Join waitlist"
-                className="rounded-full bg-brand-green px-6 py-3 font-semibold text-dark-900 hover:bg-brand-green-light"
+                className="rounded-full bg-brand-strong px-6 py-3 font-semibold text-on-brand hover:bg-brand"
               >
                 Join
               </button>

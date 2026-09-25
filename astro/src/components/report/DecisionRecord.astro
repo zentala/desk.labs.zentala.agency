@@ -6,7 +6,7 @@ const fields = [
   ['check', 'Decision recorded', decision], ['next', 'Trade-off', tradeoff], ['next', 'Mitigation', mitigation],
 ];
 ---
-<article class="my-10 overflow-hidden rounded-2xl border border-report-divider bg-report-surface">
+<article class="my-10 overflow-hidden rounded-2xl border border-line bg-surface">
   <header class="decision-record__header">
     <div class="decision-record__number" aria-label={'Decision ' + number}>{number}</div>
     <div class="decision-record__heading"><p>Decision record</p><h3>{title}</h3></div>
@@ -19,18 +19,18 @@ const fields = [
 </article>
 
 <style>
-  .decision-record__header { display: grid; grid-template-columns: 3.5rem minmax(0, 1fr); align-items: center; gap: 1.25rem; padding: 1.35rem 1.5rem; border-bottom: 1px solid var(--color-report-divider); }
-  .decision-record__number { display: grid; width: 3.5rem; height: 3.5rem; place-items: center; border: 1px solid color-mix(in srgb, var(--color-brand-green) 50%, transparent); color: var(--color-brand-green); font-size: 1.35rem; font-weight: 700; }
+  .decision-record__header { display: grid; grid-template-columns: 3.5rem minmax(0, 1fr); align-items: center; gap: 1.25rem; padding: 1.35rem 1.5rem; border-bottom: 1px solid var(--color-line); }
+  .decision-record__number { display: grid; width: 3.5rem; height: 3.5rem; place-items: center; border: 1px solid color-mix(in srgb, var(--color-brand) 50%, transparent); color: var(--color-brand-text); font-size: 1.35rem; font-weight: 700; }
   .decision-record__heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: .65rem 1rem; }
-  .decision-record__heading p { margin: 0; color: var(--color-brand-green); font-size: .68rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
-  .decision-record__heading h3 { margin: 0; color: #f3f4f6; font-size: clamp(1.25rem, 2vw, 1.8rem); }
+  .decision-record__heading p { margin: 0; color: var(--color-brand-text); font-size: .68rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
+  .decision-record__heading h3 { margin: 0; color: var(--color-ink); font-size: clamp(1.25rem, 2vw, 1.8rem); }
   .decision-record__fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 2rem; padding: 0 1.5rem; }
-  .decision-record__field { min-width: 0; padding: 1.15rem 0 1.25rem; border-bottom: 1px solid var(--color-report-divider); }
+  .decision-record__field { min-width: 0; padding: 1.15rem 0 1.25rem; border-bottom: 1px solid var(--color-line); }
   .decision-record__field--decision { grid-column: 1 / -1; }
   .decision-record__field--last { border-bottom: 0; }
-  .decision-record__field dt { display: flex; align-items: center; gap: .5rem; color: #d1d5db; font-size: .68rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
-  .decision-record__field--decision dt { color: var(--color-brand-green); }
-  .decision-record__field dd { margin: .45rem 0 0; color: var(--color-muted); font-size: .92rem; line-height: 1.75; }
-  .decision-record__field--decision dd { color: #f3f4f6; font-size: 1rem; }
+  .decision-record__field dt { display: flex; align-items: center; gap: .5rem; color: var(--color-ink-muted); font-size: .68rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  .decision-record__field--decision dt { color: var(--color-brand-text); }
+  .decision-record__field dd { margin: .45rem 0 0; color: var(--color-ink-muted); font-size: .92rem; line-height: 1.75; }
+  .decision-record__field--decision dd { color: var(--color-ink); font-size: 1rem; }
   @media (max-width: 640px) { .decision-record__header { grid-template-columns: 2.75rem minmax(0, 1fr); gap: .9rem; padding: 1.15rem 1.1rem; } .decision-record__number { width: 2.75rem; height: 2.75rem; } .decision-record__fields { display: block; padding: 0 1.1rem; } }
 </style>

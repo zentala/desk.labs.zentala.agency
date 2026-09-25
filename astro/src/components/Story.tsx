@@ -44,18 +44,18 @@ const steps: StoryStep[] = [
 
 export default function Story() {
   return (
-    <section className="py-24 border-t border-gray-800/50">
+    <section className="py-24 border-t border-line/50">
       <div className="section-container">
         <h2 className="text-center text-3xl font-bold sm:text-4xl">
           How this started
         </h2>
-        <p className="mx-auto mt-4 max-w-2xl text-center text-lg text-muted">
+        <p className="mx-auto mt-4 max-w-2xl text-center text-lg text-ink-muted">
           A personal story about building something I needed myself.
         </p>
 
         <div className="relative mt-16">
           {/* Vertical timeline line */}
-          <div className="absolute left-4 top-0 hidden h-full w-px bg-gradient-to-b from-brand-green/50 via-brand-green/20 to-transparent md:left-1/2 md:block" />
+          <div className="absolute left-4 top-0 hidden h-full w-px bg-gradient-to-b from-brand-text/50 via-brand-text/20 to-transparent md:left-1/2 md:block" />
 
           <div className="space-y-12">
             {steps.map((step, i) => (
@@ -76,7 +76,7 @@ function StoryCard({ step, index }: { step: StoryStep; index: number }) {
       isLeft ? 'md:flex-row' : 'md:flex-row-reverse'
     }`}>
       {/* Timeline dot */}
-      <div className="absolute left-4 top-2 hidden h-3 w-3 -translate-x-1/2 rounded-full bg-brand-green md:left-1/2 md:block" />
+      <div className="absolute left-4 top-2 hidden h-3 w-3 -translate-x-1/2 rounded-full bg-brand-strong md:left-1/2 md:block" />
 
       {/* Spacer */}
       <div className="hidden w-1/2 md:block" />
@@ -85,14 +85,14 @@ function StoryCard({ step, index }: { step: StoryStep; index: number }) {
       <div className={`ml-10 w-full md:ml-0 md:w-1/2 ${
         isLeft ? 'md:pr-12' : 'md:pl-12'
       }`}>
-        <div className="rounded-2xl border border-gray-800 bg-dark-800 p-6 sm:p-8">
-          <span className="text-xs font-semibold uppercase tracking-widest text-brand-green">
+        <div className="rounded-2xl border border-line bg-surface p-6 sm:p-8">
+          <span className="text-xs font-semibold uppercase tracking-widest text-brand-text">
             {step.phase}
           </span>
-          <h3 className="mt-2 text-xl font-bold text-gray-100">
+          <h3 className="mt-2 text-xl font-bold text-ink">
             {step.title}
           </h3>
-          <p className="mt-3 text-muted">{step.text}</p>
+          <p className="mt-3 text-ink-muted">{step.text}</p>
         </div>
       </div>
     </div>

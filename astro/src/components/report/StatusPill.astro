@@ -1,5 +1,5 @@
 ---
 const { state } = Astro.props;
-const classes = { archived: 'text-status-archived border-status-archived/40', 'in use': 'text-status-in-use border-status-in-use/40', 'in review': 'text-status-in-review border-status-in-review/40', 'in design': 'text-status-in-design border-status-in-design/40', planned: 'text-status-planned border-status-planned/40' };
+const classes = { archived: 'text-state-away-text border-state-away-text/40', 'in use': 'text-state-standing-text border-state-standing-text/40', 'in review': 'text-state-sitting-text border-state-sitting-text/40', 'in design': 'text-state-snoozed-text border-state-snoozed-text/40', planned: 'text-state-walking-text border-state-walking-text/40' };
 ---
 <span class={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-wider ${classes[state]}`}>{state}</span>

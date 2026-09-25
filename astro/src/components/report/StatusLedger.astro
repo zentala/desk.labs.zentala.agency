@@ -5,12 +5,12 @@ import { workstreams } from '../../data/project-status';
 const icons = ['app', 'board', 'enclosure'];
 ---
 <section id="current" class="report-container py-16 md:py-20">
-  <div class="mb-10"><p class="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-brand-green">Current state</p><h2 class="text-3xl text-gray-100 md:text-4xl">Preparing the first consumer version</h2><p class="mt-4 max-w-2xl leading-7 text-muted">This is no longer a proof-of-concept page. The work now is to turn the lessons from two prototypes into a small, testable product.</p></div>
-  <div class="divide-y divide-report-divider border-y border-report-divider">
+  <div class="mb-10"><p class="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-brand-text">Current state</p><h2 class="text-3xl text-ink md:text-4xl">Preparing the first consumer version</h2><p class="mt-4 max-w-2xl leading-7 text-ink-muted">This is no longer a proof-of-concept page. The work now is to turn the lessons from two prototypes into a small, testable product.</p></div>
+  <div class="divide-y divide-line border-y border-line">
     {workstreams.map((item, index) => <article class="grid gap-5 py-7 md:grid-cols-[2fr_3fr_2fr] md:gap-8">
-      <div class="flex gap-4"><div class="mt-1 text-brand-green"><Icon name={icons[index]} size={22} /></div><div><h3 class="text-xl text-gray-100">{item.name}</h3><div class="mt-3"><StatusPill state={item.state} /></div></div></div>
-      <div><p class="leading-7 text-gray-300">{item.summary}</p><p class="mt-4 text-sm leading-6 text-muted"><span class="font-semibold text-gray-400">Evidence: </span>{item.evidence.href ? <a class="report-link" href={item.evidence.href}>{item.evidence.label}</a> : null} {item.evidence.note}</p></div>
-      <div class="text-sm leading-6 text-muted"><p class="mb-2 flex items-center gap-2 font-semibold text-gray-300"><Icon name="next" size={16} /> Next milestone</p><p>{item.next}</p><time class="mt-4 block text-xs uppercase tracking-wider" datetime={item.updatedAt}>Updated {item.updatedAt}</time></div>
+      <div class="flex gap-4"><div class="mt-1 text-brand-text"><Icon name={icons[index]} size={22} /></div><div><h3 class="text-xl text-ink">{item.name}</h3><div class="mt-3"><StatusPill state={item.state} /></div></div></div>
+      <div><p class="leading-7 text-ink-muted">{item.summary}</p><p class="mt-4 text-sm leading-6 text-ink-muted"><span class="font-semibold text-ink-muted">Evidence: </span>{item.evidence.href ? <a class="report-link" href={item.evidence.href}>{item.evidence.label}</a> : null} {item.evidence.note}</p></div>
+      <div class="text-sm leading-6 text-ink-muted"><p class="mb-2 flex items-center gap-2 font-semibold text-ink-muted"><Icon name="next" size={16} /> Next milestone</p><p>{item.next}</p><time class="mt-4 block text-xs uppercase tracking-wider" datetime={item.updatedAt}>Updated {item.updatedAt}</time></div>
     </article>)}
   </div>
 </section>

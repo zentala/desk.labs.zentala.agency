@@ -22,12 +22,12 @@ export default function Problem() {
   ];
 
   return (
-    <section className="py-24 border-t border-gray-800/50">
+    <section className="py-24 border-t border-line/50">
       <div className="section-container">
         <h2 className="text-center text-3xl font-bold sm:text-4xl">
           Sound familiar?
         </h2>
-        <p className="mx-auto mt-4 max-w-2xl text-center text-lg text-muted">
+        <p className="mx-auto mt-4 max-w-2xl text-center text-lg text-ink-muted">
           You bought the desk. You had the best intentions.
           But without feedback, nothing changes.
         </p>
@@ -36,15 +36,15 @@ export default function Problem() {
           {painPoints.map((point) => (
             <div
               key={point.stat}
-              className="rounded-2xl border border-gray-800 bg-dark-800 p-8 text-center"
+              className="rounded-2xl border border-line bg-surface p-8 text-center"
             >
-              <div className="text-4xl font-extrabold text-brand-green">
+              <div className="text-4xl font-extrabold text-brand-text">
                 {point.stat}
               </div>
-              <div className="mt-3 text-lg font-semibold text-gray-200">
+              <div className="mt-3 text-lg font-semibold text-ink">
                 {point.label}
               </div>
-              <p className="mt-3 text-sm text-muted">{point.detail}</p>
+              <p className="mt-3 text-sm text-ink-muted">{point.detail}</p>
             </div>
           ))}
         </div>

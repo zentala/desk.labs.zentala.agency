@@ -57,7 +57,7 @@ function trackFaqExpand() {
 
 export default function FAQ() {
   return (
-    <section className="py-24 border-t border-gray-800/50">
+    <section className="py-24 border-t border-line/50">
       <div className="section-container">
         <h2 className="text-center text-3xl font-bold sm:text-4xl">
           Frequently asked questions
@@ -67,17 +67,17 @@ export default function FAQ() {
           {faqs.map((faq) => (
             <details
               key={faq.question}
-              className="group rounded-2xl border border-gray-800 bg-dark-800"
+              className="group rounded-2xl border border-line bg-surface"
               onToggle={(e) => { if ((e.target as HTMLDetailsElement).open) trackFaqExpand(); }}
             >
-              <summary className="flex cursor-pointer items-center justify-between p-6 text-lg font-semibold text-gray-100 [&::-webkit-details-marker]:hidden">
+              <summary className="flex cursor-pointer items-center justify-between p-6 text-lg font-semibold text-ink [&::-webkit-details-marker]:hidden">
                 {faq.question}
-                <span className="ml-4 text-muted transition-transform group-open:rotate-45">
+                <span className="ml-4 text-ink-muted transition-transform group-open:rotate-45">
                   +
                 </span>
               </summary>
               <div className="px-6 pb-6">
-                <p className="text-muted leading-relaxed">{faq.answer}</p>
+                <p className="text-ink-muted leading-relaxed">{faq.answer}</p>
               </div>
             </details>
           ))}

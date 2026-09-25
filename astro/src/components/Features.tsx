@@ -49,12 +49,12 @@ const features: Feature[] = [
 
 export default function Features() {
   return (
-    <section className="py-24 border-t border-gray-800/50">
+    <section className="py-24 border-t border-line/50">
       <div className="section-container">
         <h2 className="text-center text-3xl font-bold sm:text-4xl">
           What the app does
         </h2>
-        <p className="mx-auto mt-4 max-w-xl text-center text-lg text-muted">
+        <p className="mx-auto mt-4 max-w-xl text-center text-lg text-ink-muted">
           Built from 300+ hours of self-experimentation. Every feature earned its place.
         </p>
 
@@ -62,13 +62,13 @@ export default function Features() {
           {features.map((feature) => (
             <div
               key={feature.title}
-              className="rounded-2xl border border-gray-800 bg-dark-800 p-6 transition-colors hover:border-gray-700"
+              className="rounded-2xl border border-line bg-surface p-6 transition-colors hover:border-line"
             >
               <div className="mb-4 text-3xl">{feature.icon}</div>
-              <h3 className="text-lg font-bold text-gray-100">
+              <h3 className="text-lg font-bold text-ink">
                 {feature.title}
               </h3>
-              <p className="mt-2 text-sm text-muted">{feature.description}</p>
+              <p className="mt-2 text-sm text-ink-muted">{feature.description}</p>
             </div>
           ))}
         </div>
