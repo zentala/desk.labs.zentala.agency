@@ -245,6 +245,11 @@ person, the height of the desk and the words on the screen. It never changes the
 The code for the world is `astro/src/components/scene/kit/`; scenes compose it and add nothing
 the kit does not already know how to draw.
 
+**What the desk scene depicts and what must be visible** is specified in
+[`research/visuals/DESK-SCENE-SPEC.md`](research/visuals/DESK-SCENE-SPEC.md) (numbered
+requirements, storyboard, task breakdown); the decisions and rejected options are recorded in
+[ADR-012](.plan/ADR/012-3d-desk-illustration.md). This section is the style guide only.
+
 The name is the promise: honest low-poly, and **form is defined by light**. The illustrations do
 not imitate hand drawing, clay or photographs; they use what flat-shaded geometry does well —
 crisp edges and clearly separated planes. (Owner decisions 2026-09-25: the sharper W3-T3 look with

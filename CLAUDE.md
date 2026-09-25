@@ -41,6 +41,7 @@ The two tracks are independent: website work does not block product work.
 | Session handoff | `research/SESSION-2026-06-25.md` | Read this to catch up |
 | Task list | `TASKS.md` | Read this for next steps |
 | User research quotes | `research/user-quotes.xml` | 26 real quotes from forums |
+| Desk scene spec (3D illustration) | [`research/visuals/DESK-SCENE-SPEC.md`](research/visuals/DESK-SCENE-SPEC.md) | Normative: what is depicted, requirements register, storyboard, task breakdown; decisions in [ADR-012](.plan/ADR/012-3d-desk-illustration.md) |
 | Website | `astro/` | Active, builds locally — deployment unconfirmed |
 
 ---
