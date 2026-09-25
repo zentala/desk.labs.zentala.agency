@@ -167,3 +167,28 @@ Product repo: `~/code/MoveUp` (Tauri + Rust + React). Defaults are in `src-tauri
 Everything is configurable per profile. Found along the way: `Limits.standing_secs` (1200) is declared but not read by the engine. Dead config belongs in the MoveUp backlog, not here.
 
 Consequence for the story: the claim is not "stand 2 minutes". It is **"change position; every minute up buys back two minutes of sitting; too much standing gets a nudge too"**. That matches the owner's framing that the change of position is what counts. Streaks are not promised; points and a posture-change rate are.
+
+## 14. Scene stage closed (2026-09-25)
+
+The owner closed the 3D scene work at v4 ("finish, commit, put it on the site").
+
+**Done:**
+- DESIGN.md v2 with 3D style "faceted light": sharp, no bevels, faceted primitives, a figure built from ellipsoids, a neutral colour language.
+- Scene kit in `astro/src/components/scene/kit/`.
+- DeskScene v4: sensor on the underside, USB-C to the monitor, desk paddle as a separate system, telescopic columns with stage tones, chair, figure, mug and plant.
+- Scroll-driven rise; Rising/Lowering states; zoom callouts.
+- Homepage section "How it works" plus `/lab/desk-scene`.
+- Site-wide dark-mode fix; fabricated content removed.
+- Distribution strategy in `research/vision/DISTRIBUTION.md`.
+
+**Known leftovers, parked:**
+- The cable callout anchor sits on the plant pot, not the cable, and its leader still crosses the label in the standing frame.
+- Waist seam on the figure; the chair backrest is a compromise.
+- Neighbouring homepage sections still use v1 classes, so the page is visually mixed.
+- The WebP fallback has the callouts baked in.
+- No lean keyframe mid-scroll.
+
+**Next, not started:**
+- E011 page rebuild: new homepage, `/how-it-works`, `/why-stand`, `/diy`, `/build-log`, LaunchCTA with a waitlist backend.
+- More scenes (stool, walking away, jumping jacks).
+- Owner decisions still open: variant B as the DIY board, a test batch of 5 before `/diy`, MoveUp thresholds 40/90 vs 30/45.
