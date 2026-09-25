@@ -54,7 +54,8 @@ function loadMannequin(): Promise<MannequinModule> {
 
 function pose(man: MannequinLike, action: FigureAction): void {
   const sit = action === "sit";
-  man.turn = 0;
+  // the library's default is -90 (facing +Z, its own camera); +90 faces our desk at -Z
+  man.turn = 90;
   man.bend = sit ? 4 : 0;
   man.torso.bend = sit ? 2 : 1;
   man.head.nod = sit ? -8 : -4;

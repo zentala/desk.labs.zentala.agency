@@ -6,50 +6,60 @@
  * mesh, so the outline toggle covers the procedural figure only.
  */
 import { useEffect, useMemo, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { SkeletonUtils } from "three-stdlib";
+import { SITTING, STANDING } from "../scene/kit";
 import type { FigureAction } from "./settings";
 
 type GltfKind = "robot" | "kenney" | "quaternius";
 
 interface ModelSpec {
   url: string;
-  /** scene-space height the model is scaled to (m) */
-  height: number;
+  /** the pelvis bone, pinned to our seat when sitting */
+  hipBone: string;
+  /**
+   * Overall height (m) for stylised rigs whose hips sit at under a third of
+   * their height (big-head robot, chibi); omitted = scale the hips to our
+   * figure's standing hip height, which suits realistic proportions.
+   */
+  height?: number;
   clips: Record<FigureAction, string>;
   /** clips that end in a held pose rather than loop */
   once: string[];
   /** rotation about Y that makes the model face the desk (-Z) */
   faceDesk: number;
-  /** root position per action, feet on the floor */
-  at: Record<FigureAction, [number, number, number]>;
+  /** root position when standing / walking, feet on the floor (sitting is pinned by the hips) */
+  at: Record<Exclude<FigureAction, "sit">, [number, number, number]>;
 }
 
 const MODELS: Record<GltfKind, ModelSpec> = {
   robot: {
     url: "/models/spike/RobotExpressive.glb",
+    hipBone: "Hips",
     height: 1.6,
     clips: { sit: "Sitting", stand: "Standing", walk: "Walking" },
     once: ["Sitting", "Standing"],
-    faceDesk: 0,
-    at: { sit: [0, 0, 0.62], stand: [0, 0, 0.5], walk: [0.7, 0, 0.9] },
+    faceDesk: Math.PI,
+    at: { stand: [0, 0, 0.5], walk: [0.7, 0, 0.9] },
   },
   kenney: {
     url: "/models/spike/KenneyMiniCharacterMaleB.glb",
+    hipBone: "torso",
     height: 1.5,
     clips: { sit: "sit", stand: "idle", walk: "walk" },
     once: [],
-    faceDesk: 0,
-    at: { sit: [0, 0, 0.6], stand: [0, 0, 0.5], walk: [0.7, 0, 0.9] },
+    faceDesk: Math.PI,
+    at: { stand: [0, 0, 0.5], walk: [0.7, 0, 0.9] },
   },
   quaternius: {
     url: "/models/spike/QuaterniusAnimationLibrary.gltf",
-    height: 1.75,
+    hipBone: "DEF-hips",
     clips: { sit: "Sitting_Idle_Loop", stand: "Idle_Loop", walk: "Walk_Loop" },
     once: [],
     faceDesk: Math.PI,
-    at: { sit: [0, 0, 0.64], stand: [0, 0, 0.5], walk: [0.7, 0, 0.9] },
+    at: { stand: [0, 0, 0.5], walk: [0.7, 0, 0.9] },
   },
 };
 
@@ -62,21 +72,15 @@ interface GltfFigureProps {
   color: string;
 }
 
-/** Rest-pose height with skinning applied (geometry bounds alone are wrong for rig-scaled meshes like RobotExpressive). */
-function skinnedHeight(root: THREE.Object3D): number {
+/** our figure's hips: standing height, and where they sit on the chair (kit poses.ts) */
+const STAND_HIP_Y = STANDING.hip[1];
+const SIT_HIP = new THREE.Vector3(...SITTING.hip);
+
+/** Rest-pose hip height in model units. Bounding boxes lie for rigs whose bones carry the scale (RobotExpressive). */
+function restHipY(root: THREE.Object3D, bone: string): number {
   root.updateMatrixWorld(true);
-  const box = new THREE.Box3();
-  root.traverse((o) => {
-    const mesh = o as THREE.SkinnedMesh;
-    if (!mesh.isMesh) return;
-    if (mesh.isSkinnedMesh) {
-      mesh.computeBoundingBox();
-      if (mesh.boundingBox) box.union(mesh.boundingBox.clone().applyMatrix4(mesh.matrixWorld));
-    } else {
-      box.expandByObject(mesh);
-    }
-  });
-  return box.max.y - box.min.y;
+  const hip = root.getObjectByName(bone);
+  return hip ? hip.getWorldPosition(new THREE.Vector3()).y : 0;
 }
 
 /** Restyle every mesh to one flat-shaded Lambert in our token; returns the undo. */
@@ -106,11 +110,32 @@ export default function GltfFigure({ kind, action, ourStyle, color }: GltfFigure
   const { actions, mixer } = useAnimations(gltf.animations, scene);
 
   const scale = useMemo(() => {
-    const h = skinnedHeight(scene);
-    const plain = new THREE.Box3().setFromObject(scene);
-    console.info(`[spike] ${kind}: skinned height ${h.toFixed(3)}, plain box ${(plain.max.y - plain.min.y).toFixed(3)} (y ${plain.min.y.toFixed(2)}..${plain.max.y.toFixed(2)}) → scale ${(spec.height / h).toFixed(3)}`);
-    return h > 0 ? spec.height / h : 1;
-  }, [scene, spec.height, kind]);
+    if (spec.height) {
+      // not `precise`: that path reads raw bind-space vertices (149 units on RobotExpressive);
+      // the default path uses SkinnedMesh.computeBoundingBox, which applies the bones —
+      // after their world matrices exist (stale matrices give the same 149)
+      scene.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(scene);
+      const h = box.max.y - box.min.y;
+      return h > 0 ? spec.height / h : 1;
+    }
+    const y = restHipY(scene, spec.hipBone);
+    return y > 0 ? STAND_HIP_Y / y : 1;
+  }, [scene, spec.hipBone, spec.height]);
+  const hip = useMemo(() => scene.getObjectByName(spec.hipBone) ?? null, [scene, spec.hipBone]);
+  const hipNow = useMemo(() => new THREE.Vector3(), []);
+
+  // runs after useAnimations' mixer update (same priority, subscribed earlier): pin the sitting hips to our seat
+  useFrame(() => {
+    const g = group.current;
+    if (!g) return;
+    if (action !== "sit" || !hip) {
+      g.position.set(...spec.at[action === "sit" ? "stand" : action]);
+      return;
+    }
+    hip.getWorldPosition(hipNow);
+    g.position.add(SIT_HIP).sub(hipNow);
+  });
 
   useEffect(() => {
     scene.traverse((o) => {
@@ -150,7 +175,7 @@ export default function GltfFigure({ kind, action, ourStyle, color }: GltfFigure
 
   const yaw = spec.faceDesk + (action === "walk" ? Math.PI * 0.75 : 0);
   return (
-    <group ref={group} position={spec.at[action]} rotation={[0, yaw, 0]} scale={scale}>
+    <group ref={group} rotation={[0, yaw, 0]} scale={scale}>
       <primitive object={scene} />
     </group>
   );
