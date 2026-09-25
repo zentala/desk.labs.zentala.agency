@@ -42,6 +42,7 @@ The two tracks are independent: website work does not block product work.
 | Task list | `TASKS.md` | Read this for next steps |
 | User research quotes | `research/user-quotes.xml` | 26 real quotes from forums |
 | Desk scene spec (3D illustration) | [`research/visuals/DESK-SCENE-SPEC.md`](research/visuals/DESK-SCENE-SPEC.md) | Normative: what is depicted, requirements register, storyboard, task breakdown; decisions in [ADR-012](.plan/ADR/012-3d-desk-illustration.md) |
+| Blender workspace (renders, GLB) | [`blender/README.md`](blender/README.md) | Headless bpy scripts re-creating the desk scene in Blender 5.2 (portable, `C:/Users/zentala/tools/blender/`); skills [`blender-bpy`](.claude/skills/blender-bpy/SKILL.md) and [`blender-lowpoly-style`](.claude/skills/blender-lowpoly-style/SKILL.md); renders in `.plan/epics/E005-*/blender/` |
 | Website | `astro/` | Active, builds locally — deployment unconfirmed |
 
 ---
