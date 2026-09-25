@@ -10,7 +10,7 @@ import DeskScene from '../../components/scene/DeskScene';
     <meta name="robots" content="noindex, nofollow" />
     <title>Lab: DeskScene — Open Smart Desk</title>
   </head>
-  <body class="bg-bg text-ink" style="min-height: 100vh; padding: 48px 24px;">
+  <body class="bg-bg text-ink lab-body" style="min-height: 100vh; padding: 48px 24px;">
     <main style="max-width: 720px; margin: 0 auto;">
       <p style="font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ink-muted);">
         Lab — internal preview, not indexed
@@ -37,3 +37,25 @@ import DeskScene from '../../components/scene/DeskScene';
     </main>
   </body>
 </html>
+
+<style>
+  /*
+    Scoped light-paper override for this lab page (DESIGN.md §0, §12.2).
+    The shared `bg-bg`/`text-ink` utilities depend on a nested `@theme` inside
+    `@media (prefers-color-scheme: dark)` in global.css, which Tailwind v4
+    does not scope correctly (nested `@theme` blocks are unsupported and get
+    hoisted), so those utilities currently resolve dark unconditionally site
+    wide. Filed as a repo bug (see .plan/BACKLOG.md); this scoped block keeps
+    the lab page correct without touching the shared stylesheet.
+  */
+  .lab-body {
+    background-color: #FAF7F2;
+    color: #1F2430;
+  }
+  @media (prefers-color-scheme: dark) {
+    .lab-body {
+      background-color: #14171C;
+      color: #EDEAE3;
+    }
+  }
+</style>
