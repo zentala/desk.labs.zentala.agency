@@ -1,19 +1,21 @@
 /**
  * Scene kit — the world every scene stands in (DESIGN.md §8.3, §8.4).
  *
- * `Stage` = Canvas with the kit renderer settings + `LightRig` + `Slab` +
- * contact shadows + `Lens` (constant horizontal fov, pointer parallax).
- * Scenes render their objects as children and never add lights or cameras.
+ * `World` = the light rig (key, fill, rim, low sky), the slab with contact
+ * shadows, and the `Lens`: a
+ * `makeDefault` camera that fits `CAMERA.frame` in every aspect ratio and adds
+ * a pointer parallax. Rendered inside a drei `<View>`; scenes add objects only.
  */
 import { useEffect, useRef, type ReactNode } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { ContactShadows } from "@react-three/drei";
+import { useFrame, useThree } from "@react-three/fiber";
+import { ContactShadows, PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
 import type { ScenePalette } from "../scenePalette";
 import { Block } from "./Block";
 import { CAMERA, LIGHT, STAGE } from "./style";
 
-function LightRig({ palette }: { palette: ScenePalette }) {
+/** Key + fill + rim + sky. Only the key casts. */
+export function LightRig({ palette }: { palette: ScenePalette }) {
   return (
     <>
       <hemisphereLight color={LIGHT.skyColor} groundColor={palette.line} intensity={LIGHT.hemisphereIntensity} />
@@ -25,6 +27,8 @@ function LightRig({ palette }: { palette: ScenePalette }) {
         shadow-mapSize-width={LIGHT.shadowMapSize}
         shadow-mapSize-height={LIGHT.shadowMapSize}
         shadow-bias={LIGHT.shadowBias}
+        shadow-normalBias={LIGHT.shadowNormalBias}
+        shadow-radius={LIGHT.shadowRadius}
         shadow-camera-left={-2}
         shadow-camera-right={2}
         shadow-camera-top={2.5}
@@ -33,12 +37,13 @@ function LightRig({ palette }: { palette: ScenePalette }) {
         shadow-camera-far={12}
       />
       <directionalLight position={LIGHT.fillPosition} intensity={LIGHT.fillIntensity} color={LIGHT.fillColor} />
+      <directionalLight position={LIGHT.rimPosition} intensity={LIGHT.rimIntensity} color={LIGHT.rimColor} />
     </>
   );
 }
 
 /** Floor island: a sharp slab plus a thinner rug on top. Top surface is y = 0. */
-function Slab({ palette }: { palette: ScenePalette }) {
+export function Slab({ palette }: { palette: ScenePalette }) {
   return (
     <group>
       <Block
@@ -67,34 +72,35 @@ function Slab({ palette }: { palette: ScenePalette }) {
 }
 
 /** Fits `CAMERA.frame` at the target in every aspect ratio and adds a ±4° pointer parallax. */
-function Lens({ parallax, lift }: { parallax: boolean; lift: number }) {
-  const { camera, size, pointer, gl, invalidate } = useThree();
+export function Lens({ parallax, lift }: { parallax: boolean; lift: number }) {
+  const { size, pointer, invalidate } = useThree();
+  const cam = useRef<THREE.PerspectiveCamera>(null);
   const target = useRef(new THREE.Vector3(...CAMERA.target));
   const base = useRef(new THREE.Vector3(...CAMERA.position));
   target.current.y = CAMERA.target[1] + CAMERA.maxLift * Math.min(1, Math.max(0, lift));
 
   useEffect(() => {
-    const cam = camera as THREE.PerspectiveCamera;
+    const c = cam.current;
+    if (!c) return;
     const aspect = size.width / size.height;
     const distance = base.current.distanceTo(target.current);
     const byHeight = 2 * Math.atan(CAMERA.frame.height / 2 / distance);
     const byWidth = 2 * Math.atan(CAMERA.frame.width / 2 / distance / aspect);
-    cam.fov = THREE.MathUtils.radToDeg(Math.max(byHeight, byWidth));
-    cam.aspect = aspect;
-    cam.updateProjectionMatrix();
-    cam.position.copy(base.current);
-    cam.lookAt(target.current);
-  }, [camera, size, lift]);
-
-  useEffect(() => {
-    if (!parallax) return;
-    const el = gl.domElement;
-    const poke = () => invalidate();
-    el.addEventListener("pointermove", poke);
-    return () => el.removeEventListener("pointermove", poke);
-  }, [parallax, gl, invalidate]);
+    c.fov = THREE.MathUtils.radToDeg(Math.max(byHeight, byWidth));
+    c.aspect = aspect;
+    c.updateProjectionMatrix();
+    c.position.copy(base.current);
+    c.lookAt(target.current);
+    invalidate();
+  }, [size, lift, invalidate]);
 
   useFrame(() => {
+    const c = cam.current;
+    if (!c) return;
+    if (size.width > 0 && Math.abs(c.aspect - size.width / size.height) > 0.001) {
+      c.aspect = size.width / size.height;
+      c.updateProjectionMatrix();
+    }
     if (!parallax) return;
     const yaw = THREE.MathUtils.degToRad(CAMERA.parallaxDeg) * -pointer.x;
     const pitch = THREE.MathUtils.degToRad(CAMERA.parallaxDeg * 0.4) * -pointer.y;
@@ -102,41 +108,29 @@ function Lens({ parallax, lift }: { parallax: boolean; lift: number }) {
     offset.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
     const right = new THREE.Vector3().crossVectors(offset, new THREE.Vector3(0, 1, 0)).normalize();
     offset.applyAxisAngle(right, pitch);
-    camera.position.copy(target.current).add(offset);
-    camera.lookAt(target.current);
+    c.position.copy(target.current).add(offset);
+    c.lookAt(target.current);
   });
-  return null;
+
+  return <PerspectiveCamera ref={cam} makeDefault position={CAMERA.position} fov={34} near={0.1} far={30} />;
 }
 
-export interface StageProps {
+export interface WorldProps {
   palette: ScenePalette;
   /** pointer parallax; off for touch and reduced motion */
   parallax?: boolean;
   /** 0..1 camera target lift (§8.4), e.g. follows the person standing up */
   lift?: number;
-  /** kept "demand": scenes call `invalidate()` when something changes */
   children: ReactNode;
 }
 
-export function Stage({ palette, parallax = true, lift = 0, children }: StageProps) {
+export function World({ palette, parallax = true, lift = 0, children }: WorldProps) {
   return (
-    <Canvas
-      frameloop="demand"
-      dpr={[1, 2]}
-      shadows={{ type: THREE.PCFSoftShadowMap }}
-      camera={{ position: CAMERA.position, fov: 34, near: 0.1, far: 30 }}
-      gl={{
-        antialias: true,
-        alpha: true,
-        toneMapping: THREE.NeutralToneMapping,
-        toneMappingExposure: LIGHT.exposure,
-      }}
-      style={{ background: "transparent" }}
-    >
+    <>
       <LightRig palette={palette} />
       <Slab palette={palette} />
       <Lens parallax={parallax} lift={lift} />
       {children}
-    </Canvas>
+    </>
   );
 }

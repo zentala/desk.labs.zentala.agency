@@ -3,10 +3,11 @@
  *
  * Kit rules, in one place:
  * 1. Every solid is a sharp box (`Block`), a low-poly cylinder (`Rod`), a
- *    faceted ellipsoid (`Blob`) or a faceted capsule (`Capsule`). No bevels,
- *    no smooth normals: `flatShading` everywhere so facets read.
+ *    faceted ellipsoid (`Blob`) or a faceted capsule (`Capsule`). No bevels;
+ *    `flatShading` everywhere except the optional smooth figure and cables.
  * 2. One matte finish (`MeshLambertMaterial`). Form is modelled by light:
- *    key + fill + low sky give every face its own tone. The beam is the only glow.
+ *    key + fill + rim + low sky give every face its own tone. The beam is the
+ *    only glow. "satin" is reserved for the monitor body and the chair base.
  * 3. One light rig (`LIGHT`), one lens (`CAMERA`), one stage slab (`STAGE`).
  * 4. Colours come from `scenePalette.ts` via `useScenePalette()`; no hex here.
  * 5. Metric units everywhere; real proportions, fewer parts, never bigger parts.
@@ -21,6 +22,10 @@ export const SEGMENTS = {
   head: 2,
   capsuleCap: 2,
   capsuleRadial: 7,
+  /** the smooth figure variant (§8.5) */
+  smoothSphere: 24,
+  smoothCapsuleCap: 8,
+  smoothCapsuleRadial: 16,
 } as const;
 
 /** Ghost silhouette opacity (§8.5). */
@@ -29,21 +34,28 @@ export const GHOST_OPACITY = 0.55;
 /**
  * Light rig (§8.3). Key from upper-left-front lights tops and front (+Z)
  * faces; a cooler fill from the right-back lights the +X faces the camera
- * sees; the sky is low so the three faces of every box read as three tones.
+ * sees; a rim from behind separates the figure and the monitor from the
+ * paper; the sky is low so the three faces of every box read as three tones.
  */
 export const LIGHT = {
   skyColor: "#FFF4E2",
   keyColor: "#FFEFD8",
   fillColor: "#DDE6F2",
+  rimColor: "#FFFFFF",
   hemisphereIntensity: 0.85,
-  keyIntensity: 1.8,
+  keyIntensity: 1.7,
   keyPosition: [-2.5, 4.5, 3] as [number, number, number],
-  fillIntensity: 0.7,
+  fillIntensity: 0.65,
   fillPosition: [4, 2.5, -1.5] as [number, number, number],
+  rimIntensity: 0.9,
+  rimPosition: [1.5, 3, -4] as [number, number, number],
   shadowMapSize: 2048,
-  shadowBias: -0.0005,
-  contactOpacity: 0.4,
-  contactBlur: 2.4,
+  shadowBias: -0.0004,
+  shadowNormalBias: 0.02,
+  /** PCF blur radius (`shadows="percentage"`): the key shadow's soft edge */
+  shadowRadius: 6,
+  contactOpacity: 0.25,
+  contactBlur: 2.6,
   contactFar: 1.8,
   contactResolution: 512,
   exposure: 1.0,

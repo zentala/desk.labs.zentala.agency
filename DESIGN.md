@@ -305,11 +305,21 @@ The site is paper, ink and one coral accent (§2). The illustrations follow the 
   shadow. Lights the side (+X) faces the camera sees, one step darker than the front.
 - **Sky** `HemisphereLight` `#FFF4E2` over `line`, intensity 0.85. Low on purpose: it is the floor
   of the value range, not a second key.
-- **Contact shadows** (`drei/ContactShadows` on the slab): opacity 0.4, blur 2.4, 512, far 1.8. The
-  cast shadow from the key plus the contact shadow are what ground every object. No SSAO, no
-  postprocessing (measured ≈ +60 kB gzip for nothing a lambert scene needs).
-- Renderer: `antialias: true`, `NeutralToneMapping` (ACES muddied the paper and the greys),
-  exposure 1.0, `SRGBColorSpace`, `dpr [1, 2]`.
+- **Rim** `DirectionalLight` from behind-right `(1.5, 3, -4)`, intensity 0.9, white, no shadow. It
+  separates the figure's head and shoulders and the monitor's top edge from the paper.
+- **Contact shadows** (`drei/ContactShadows` on the slab): opacity 0.25, blur 2.6, 512, far 1.8. The
+  key shadow uses `shadows="percentage"` with radius 6 and normal bias 0.02, so its edge is soft.
+  Together they ground every object without the v4 heaviness. No SSAO, no postprocessing
+  (measured ≈ +60 kB gzip for nothing a lambert scene needs). `AccumulativeShadows` was not
+  adopted: it must re-accumulate whenever the desk moves, which fights `frameloop="demand"`.
+- **No environment map.** `Environment` + three `Lightformer`s were tried for the satin parts
+  (monitor body, chair base: `MeshStandardMaterial`, roughness 0.55): +19.7 kB gzip for a
+  highlight nobody could see at hero size. Rejected; the satin finish stays (free) and is lit by
+  the rig alone.
+- Renderer: one shared `<Canvas>` per scene island (`kit/SceneCanvas.tsx`), `antialias: true`,
+  `NeutralToneMapping` (ACES muddied the paper and the greys), exposure 1.0, `SRGBColorSpace`,
+  `dpr [1, 2]`. Every picture — the hero and each callout inset — is a drei `<View>` tracking a
+  DOM element, so insets are the same objects seen by other cameras (§8.10).
 
 ### 8.4 Camera and framing
 
@@ -330,14 +340,18 @@ The site is paper, ink and one coral accent (§2). The illustrations follow the 
 
 ### 8.5 The person
 
-A **sand figure** (`material.figure`) built the way artists sketch one: overlapping faceted
-ellipsoids for the masses and faceted capsules for the limbs, modelled by the same light as the
-desk. No face, no skin tone, no clothing, no boxes — it says "someone" without saying who.
+A **sand figure** (`material.figure`) built the way artists sketch one: overlapping ellipsoids for
+the masses and capsules for the limbs, modelled by the same light as the desk. No face, no skin
+tone, no clothing, no boxes, no shoulder caps — it says "someone" without saying who. Two
+variants (`figureStyle`): `faceted` (icosahedra and 7-sided capsules, the default) and `smooth`
+(24-segment spheres, 16-sided capsules, `matteSmooth` finish) — the architectural-model
+convention of a smooth clay figure in a faceted world. The owner picks on the lab page.
 
 - Masses (`Blob`): head 19 × 22 × 20 cm (detail 2), ribcage 36 × 40 × 24, pelvis 30 × 20 × 22,
-  shoulder caps, hands, feet. Limbs (`Capsule`): neck, upper arm r 4.5 / 22, forearm r 4 / 19,
-  thigh r 7.5 / 32, shin r 5.5 / 36 (radius / straight length, cm). Masses overlap; joints are
-  hidden inside the capsule caps, so there are no visible seams to pose around.
+  hands, feet. Limbs (`Capsule`): neck, upper arm r 4.5 / 22, forearm r 4 / 19, thigh r 7.5 / 32,
+  shin r 5.5 / 36 (radius / straight length, cm). The arms pivot 45 cm above the hips and 16.5 cm
+  off centre — inside the ribcage's silhouette, just below its widest point. Masses overlap;
+  joints are hidden inside the capsule caps, so there are no visible seams to pose around.
 - Rig (`kit/Person.tsx`): joints are nested groups; poses are joint angles in `kit/poses.ts`
   (`SITTING`, `STANDING`; later `walking`, `jumpingJacks`, `stretch`).
 - Proportions: 1.75 m, ~7 heads, shoulders wider than pelvis. Feet are on the floor in every
@@ -362,14 +376,17 @@ desk. No face, no skin tone, no clothing, no boxes — it says "someone" without
   right edge, 10 cm from the back, lens facing down, beam straight to the floor outside the foot's
   footprint. One cable under the top, around the back edge and along it into the monitor. Two
   cables, two systems, visibly separate.
-- **Monitor:** one 34" ultrawide all-in-one on a slim neck. The screen is the app: a dominant
-  height readout (236 px on a 1170 px canvas), a state chip (Sitting / Rising / Lowering /
-  Standing), a slim timeline, and the toast only in the settled states. Nothing about state floats
-  in 3D.
+- **Monitor:** one 34" ultrawide all-in-one on a slim neck, satin ink body, with a **USB-C port on
+  its right side** where the sensor cable plugs in (a slot and a seated plug). The screen is the
+  app, designed for its real on-page size (~330 CSS px wide at 1280 px): the app mark, a dominant
+  height readout, a state chip (Sitting / Rising / Lowering / Standing) and one toast in the
+  settled states. Nothing else, nothing about state floats in 3D.
+- **Chair:** two variants (`chairStyle`): `sharp` (boxy seat and back, the default and the
+  homepage's) and `rounded` (faceted seat and back cushions, the pan hidden inside the seat).
 - Keyboard, mouse, an 8-sided cream mug with a handle, a notebook, and one small plant (faceted
   pot, three stretched icosahedron leaves in `material.plant`, a desaturated sage that cannot be
-  read as PCB green): the whole prop list. The mug and the plant live on the right of the desk,
-  where the camera sees them past the figure.
+  read as PCB green): the whole prop list. The mug and notebook live on the right of the desk; the
+  plant stands at the left end so nothing hides the cable's run into the monitor.
 
 ### 8.7 Motion
 
@@ -388,8 +405,10 @@ desk. No face, no skin tone, no clothing, no boxes — it says "someone" without
 - Every scene: Astro island, `client:visible`, dynamic import so `three` is its own chunk (hero
   chunk ≈ 261 kB gzip; kit + callouts add ≈ 8 kB). Ships a WebP render of the same scene as the
   no-JS / pre-hydration fallback, rendered headless from the same code.
-- Screen textures: canvas at 2× texel density, `anisotropy` = device max, redrawn only when content
-  changes (`frameloop="demand"`).
+- Screen textures: the canvas is sized from the screen's *projected* on-page pixels × dpr
+  (`kit/screen.ts`, 256–2048 px, no mipmaps, linear filtering), and the UI is drawn in a fixed
+  1000-unit design space, so text is sampled close to 1:1 and never blurred by a deep mip level.
+  Redrawn only when content changes (`frameloop="demand"`).
 
 ### 8.9 Do / don't
 
@@ -408,18 +427,25 @@ desk. No face, no skin tone, no clothing, no boxes — it says "someone" without
 ### 8.10 Zoom callouts
 
 Circular magnified insets with a leader line to a 3D anchor and one short label. They explain the
-product parts (sensor, cable, beam) that are honest but small at hero size.
+product parts (sensor, cable) that are honest but small at hero size. **They are real views**: the
+same objects rendered by another camera into the same canvas, not drawings — this reverses the
+2026-09-25 decision "Zoom callouts as HTML/SVG over the canvas" (§14); the leader lines and labels
+stay HTML/SVG.
 
-- **Anatomy** (`scene/callouts/`): `Projector` (inside the Canvas) projects world anchors to canvas
-  pixels; `Callouts` (HTML/SVG over the canvas) draws leader line, anchor dot, a 112 px circle
-  clipped to an SVG inset (`insets.tsx`) and a 13 px `font-body` 500 label under it. Text is real
-  text, never canvas.
+- **Anatomy** (`scene/callouts/`, `kit/InsetView.tsx`): `Projector` (inside the hero View) projects
+  world anchors to pixels; `Callouts` (DOM) draws the leader line, the anchor dot, a 128 px ring
+  and a 13 px `font-body` 500 label. Each ring is tracked by an `InsetView` — a drei `<View>` with
+  its own narrow lens (16–22°), the light rig plus a little extra sky, and a subset of the scene
+  (`parts`: the sensor with the desk, or the monitor with the cable). The View scissor is square;
+  an SVG in the ring covers its corners with paper so only the circle shows.
+- **The two insets:** A, the sensor from below and behind (PCB, copper, lens, the cable leaving
+  its connector); B, the cable plugging into the monitor's side port with the screen corner for
+  context. The "height change" inset was dropped: the animation already shows it.
 - **Placement:** inset centre = anchor + per-callout offset (fractions of the frame), clamped
   inside the frame. The hero keeps its right third empty for a column of up to three insets. A
   leader line may cross the scene but not the screen or another inset.
-- **Inset drawing rules:** same language as the scene — flat fills from tokens via CSS variables
-  (`--color-material-desk-top`, `--color-material-pcb`, `--color-brand`, `--color-ink`), paper
-  `surface-2` background, one coral element per inset, no text inside the circle.
+- **Inset framing rules:** the camera follows the anchor as the desk moves; the object fills
+  ~60 % of the circle; no text inside the circle; the beam may appear in A, nothing coral in B.
 - **Style:** `surface` fill, 1.5 px `line-strong` ring, `elevation.2` shadow, leader 1.5 px
   `ink-muted` with a 5 px anchor dot. Labels: sentence case, ≤ 8 words, `→` allowed.
 - **Behaviour:** visible in settled states only, fade with `toast-in`; hidden while the desk moves.
@@ -555,6 +581,8 @@ components, `container-prose` 1024 px, decision-record fields, Lucide-only icons
 | 2026-09-25 | 3D style = "faceted light": crisp low-poly, form by key + fill, neutral furniture, colour only for meaning | chamfered clay (v2), hand-drawn/outline treatment | the sharper shaded look read as more natural; the illustration must fit a paper-and-ink site |
 | 2026-09-25 | Zoom callouts as HTML/SVG over the canvas | 3D insets, drei `Html` | real text, tokens via CSS variables, no extra render passes |
 | 2026-09-25 | No bevels; faceted primitives; figure from ellipsoids and capsules; ink outlines rejected after A/B | chamfered blocks, box mannequin, inverted-hull outline | edges read as edges; a sketched figure reads as a person; the contour muddied the facets |
+| 2026-09-25 | Callout insets are real 3D views (drei `View`, one shared canvas); reverses "HTML/SVG insets" above | keep SVG drawings | the owner wants the same objects, not an illustration of them; text stays HTML |
+| 2026-09-25 | No `Environment`/`Lightformer`; rim light + soft PCF + lighter contact shadows | env-lit satin parts, AccumulativeShadows | +19.7 kB gzip for an invisible highlight; accumulation fights a moving desk under demand rendering |
 | 2026-09-25 | Tokens as DTCG JSON in this file, built into `@theme` | separate `tokens.json` | one file for humans and agents; split later if a build step needs it |
 
 ## 15. Sources

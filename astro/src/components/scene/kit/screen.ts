@@ -1,38 +1,40 @@
 /**
  * Scene kit — crisp canvas textures for screens (DESIGN.md §8.8).
  *
- * The canvas is drawn at `TEXEL_SCALE`× the logical size, with anisotropic
- * filtering at the device maximum, and redrawn only when `deps` change or the
- * web fonts finish loading. Draw functions work in logical pixels.
+ * The draw function works in a fixed design space (`designWidth` units wide);
+ * the canvas itself is sized from the screen's projected on-page pixels × dpr
+ * (`pixelWidth`), so the texture is sampled close to 1:1 with no deep mip
+ * levels to blur the text. Redrawn only when `deps` change or fonts load.
  */
 import { useEffect, useMemo } from "react";
 import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
-export const TEXEL_SCALE = 2;
-
 export interface CanvasTextureSpec {
-  width: number;
-  height: number;
+  designWidth: number;
+  designHeight: number;
+  /** canvas width in device pixels; height follows the design aspect */
+  pixelWidth: number;
   draw: (ctx: CanvasRenderingContext2D, w: number, h: number) => void;
   deps: readonly unknown[];
 }
 
-export function useCanvasTexture({ width, height, draw, deps }: CanvasTextureSpec): THREE.CanvasTexture {
+export function useCanvasTexture({ designWidth, designHeight, pixelWidth, draw, deps }: CanvasTextureSpec): THREE.CanvasTexture {
   const { gl, invalidate } = useThree();
+  const pixelHeight = Math.round((pixelWidth * designHeight) / designWidth);
 
   const { canvas, texture } = useMemo(() => {
     const c = document.createElement("canvas");
-    c.width = width * TEXEL_SCALE;
-    c.height = height * TEXEL_SCALE;
+    c.width = pixelWidth;
+    c.height = pixelHeight;
     const t = new THREE.CanvasTexture(c);
     t.colorSpace = THREE.SRGBColorSpace;
     t.anisotropy = gl.capabilities.getMaxAnisotropy();
-    t.minFilter = THREE.LinearMipmapLinearFilter;
+    t.generateMipmaps = false;
+    t.minFilter = THREE.LinearFilter;
     t.magFilter = THREE.LinearFilter;
-    t.generateMipmaps = true;
     return { canvas: c, texture: t };
-  }, [width, height, gl]);
+  }, [pixelWidth, pixelHeight, gl]);
 
   useEffect(() => {
     let cancelled = false;
@@ -40,14 +42,14 @@ export function useCanvasTexture({ width, height, draw, deps }: CanvasTextureSpe
       if (cancelled) return;
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
-      ctx.setTransform(TEXEL_SCALE, 0, 0, TEXEL_SCALE, 0, 0);
-      ctx.clearRect(0, 0, width, height);
-      draw(ctx, width, height);
+      const s = pixelWidth / designWidth;
+      ctx.setTransform(s, 0, 0, s, 0, 0);
+      ctx.clearRect(0, 0, designWidth, designHeight);
+      draw(ctx, designWidth, designHeight);
       texture.needsUpdate = true;
       invalidate();
     };
     paint();
-    // Fonts may land after the first paint; repaint once they are ready.
     if (typeof document !== "undefined" && document.fonts?.ready) {
       document.fonts.ready.then(paint);
     }
@@ -55,7 +57,7 @@ export function useCanvasTexture({ width, height, draw, deps }: CanvasTextureSpe
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canvas, texture, width, height, invalidate, ...deps]);
+  }, [canvas, texture, pixelWidth, designWidth, designHeight, invalidate, ...deps]);
 
   useEffect(() => () => texture.dispose(), [texture]);
 

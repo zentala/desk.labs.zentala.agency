@@ -20,24 +20,25 @@ export interface Pose {
 
 /**
  * Gesture-drawing proportions in metres, 1.75 m tall: the figure is a stack of
- * overlapping faceted ellipsoids (head, ribcage, pelvis, shoulders, hands,
- * feet) and capsules (neck, limbs). Capsule `length` is the straight part;
- * the total is `length + 2 × radius`. Sole = hip.y − 0.95 when standing.
+ * overlapping ellipsoids (head, ribcage, pelvis, hands, feet) and capsules
+ * (neck, limbs). Capsule `length` is the straight part; the total is
+ * `length + 2 × radius`. Arms hang from just below the ribcage's widest
+ * point, inside its silhouette — no shoulder caps. Sole = hip.y − 0.95 standing.
  */
 export const BODY = {
   head: [0.19, 0.22, 0.2] as Vec3,
   neck: { radius: 0.035, length: 0.05 },
   ribcage: [0.36, 0.4, 0.24] as Vec3,
   pelvis: [0.3, 0.2, 0.22] as Vec3,
-  shoulderCap: [0.09, 0.08, 0.09] as Vec3,
   upperArm: { radius: 0.045, length: 0.22 },
   forearm: { radius: 0.04, length: 0.19 },
   hand: [0.08, 0.03, 0.1] as Vec3,
   thigh: { radius: 0.075, length: 0.32 },
   shin: { radius: 0.055, length: 0.36 },
   foot: [0.09, 0.05, 0.24] as Vec3,
-  shoulderX: 0.19,
-  shoulderY: 0.5,
+  /** arm pivot: lower and further in than a shoulder cap would be */
+  shoulderX: 0.165,
+  shoulderY: 0.45,
   hipX: 0.09,
 } as const;
 
@@ -45,8 +46,8 @@ export const BODY = {
 export const SITTING: Pose = {
   hip: [0, 0.5, 0.52],
   torsoLean: -0.06,
-  shoulder: 0.55,
-  elbow: 0.84,
+  shoulder: 0.5,
+  elbow: 0.95,
   thigh: Math.PI / 2,
   knee: -Math.PI / 2,
 };
@@ -55,8 +56,8 @@ export const SITTING: Pose = {
 export const STANDING: Pose = {
   hip: [0, 0.95, 0.45],
   torsoLean: -0.02,
-  shoulder: 0.35,
-  elbow: 1.1,
+  shoulder: 0.32,
+  elbow: 1.18,
   thigh: 0,
   knee: 0,
 };
