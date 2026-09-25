@@ -1,6 +1,7 @@
 /**
  * Desk props you can name without a label (DESIGN.md §8.6): keyboard with a
- * key plate, mouse, a coral mug with a handle, a closed notebook. Nothing else.
+ * key plate, mouse, a cream mug with a handle, a closed notebook. All neutral:
+ * colour is reserved for meaning (DESIGN.md §8.2).
  */
 import type { ScenePalette } from "../scenePalette";
 import { Block, Rod } from "../kit";
@@ -35,10 +36,10 @@ export function DeskProps({ heightM, palette }: PropsProps) {
       />
       {/* mug with handle */}
       <group position={[-0.46, 0, front - 0.24]}>
-        <Rod radius={0.037} radiusTop={0.04} length={0.095} position={[0, 0.0475, 0]} color={palette.brand} />
+        <Rod radius={0.037} radiusTop={0.04} length={0.095} position={[0, 0.0475, 0]} color={palette.surface} />
         <mesh position={[-0.05, 0.05, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
           <torusGeometry args={[0.024, 0.007, 6, 10]} />
-          <meshLambertMaterial color={palette.brand} flatShading />
+          <meshLambertMaterial color={palette.surface} flatShading />
         </mesh>
       </group>
       {/* closed notebook */}
@@ -47,7 +48,7 @@ export function DeskProps({ heightM, palette }: PropsProps) {
         position={[0.42, 0.007, 0.0]}
         rotation={[0, 0.18, 0]}
         bevel="small"
-        color={palette.sweater}
+        color={palette.fabric}
       />
     </group>
   );

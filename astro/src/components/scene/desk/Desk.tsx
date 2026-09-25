@@ -1,8 +1,9 @@
 /**
  * The desk: top, two telescopic columns on T-feet, side brackets with a flush
  * crossbar, and the desk's own control paddle wired to the right column
- * (DESIGN.md §8.6). Nothing of ours is on this component — the sensor lives
- * in `Sensor.tsx` so the two systems are visibly separate.
+ * (DESIGN.md §8.6). Frame in the neutral "hardware grey" (§8.2). Nothing of
+ * ours is on this component — the sensor lives in `Sensor.tsx` so the two
+ * systems are visibly separate.
  */
 import { useMemo } from "react";
 import type { ScenePalette } from "../scenePalette";
@@ -73,14 +74,14 @@ function Paddle({ underside, palette }: { underside: number; palette: ScenePalet
   );
   return (
     <group>
-      <Block size={[0.1, 0.016, 0.07]} position={[x, underside - 0.008, bodyZ]} bevel="small" color={palette.teal} />
+      <Block size={[0.1, 0.016, 0.07]} position={[x, underside - 0.008, bodyZ]} bevel="small" color={palette.frame} />
       {[-0.036, -0.021, -0.006, 0.009].map((dx) => (
         <Block
           key={dx}
           size={[0.012, 0.005, 0.014]}
           position={[x + dx, buttonY, buttonZ]}
           bevel="small"
-          color={palette.surface}
+          color={palette.line}
           castShadow={false}
         />
       ))}
@@ -88,7 +89,7 @@ function Paddle({ underside, palette }: { underside: number; palette: ScenePalet
         size={[0.014, 0.006, 0.026]}
         position={[x + 0.034, buttonY, buttonZ]}
         bevel="small"
-        color={palette.surface}
+        color={palette.line}
         castShadow={false}
       />
       <Cable points={cable} color={palette.ink} />
@@ -110,14 +111,14 @@ export function Desk({ heightM, palette }: DeskProps) {
         position={[0, heightM - DESK.topThickness / 2, 0]}
         color={palette.deskTop}
       />
-      <Column x={-DESK.columnX} underside={underside} color={palette.teal} />
-      <Column x={DESK.columnX} underside={underside} color={palette.teal} />
+      <Column x={-DESK.columnX} underside={underside} color={palette.frame} />
+      <Column x={DESK.columnX} underside={underside} color={palette.frame} />
       {/* slim crossbar flush under the top, hidden from above (owner round 2) */}
       <Block
         size={[DESK.columnX * 2 - DESK.bracket[0], DESK.bracket[1], 0.04]}
         position={[0, underside - DESK.bracket[1] / 2, DESK.columnZ]}
         bevel="small"
-        color={palette.teal}
+        color={palette.frame}
       />
       <Paddle underside={underside} palette={palette} />
     </group>

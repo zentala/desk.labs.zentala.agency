@@ -1,8 +1,8 @@
 /**
- * Our sensor: a PCB-green box clamped to the back-right side edge of the top,
- * beam straight down to the floor, one thin cable along the back edge into
- * the all-in-one monitor (owner feedback items 1–2, DESIGN.md §8.6).
- * The beam is the one glow in the scene.
+ * Our sensor: a PCB-green box on the UNDERSIDE of the desktop near the
+ * back-right corner, facing down, with a clear line of sight to the floor
+ * (W3-T5 item 5). One thin cable runs under the top, around the back edge
+ * and along it into the all-in-one monitor. The beam is the one glow.
  */
 import { useEffect, useMemo, useState } from "react";
 import { useThree } from "@react-three/fiber";
@@ -10,10 +10,22 @@ import type { ScenePalette } from "../scenePalette";
 import { Block, Cable, Rod, MOTION, type Vec3 } from "../kit";
 import { DESK } from "./dims";
 
-const BOX: Vec3 = [0.06, 0.03, 0.045];
-const SENSOR_X = DESK.width / 2 + BOX[0] / 2 + 0.002;
-const SENSOR_Z = -DESK.depth / 2 + 0.07;
+const BOX: Vec3 = [0.06, 0.028, 0.045];
+/** 1.5 cm inboard of the right edge, 10 cm in from the back edge; clears the foot (x ≤ 0.48). */
+export const SENSOR_X = DESK.width / 2 - BOX[0] / 2 - 0.015;
+export const SENSOR_Z = -DESK.depth / 2 + 0.1;
 const DOT_Y = 0.008;
+
+/** World-space points the callouts point at, for a given desk height. */
+export function sensorAnchors(heightM: number, monitorZ: number): { sensor: Vec3; cable: Vec3; laser: Vec3 } {
+  const underside = heightM - DESK.topThickness;
+  void monitorZ;
+  return {
+    sensor: [SENSOR_X + 0.03, underside - BOX[1] / 2, SENSOR_Z],
+    cable: [0.42, heightM + 0.004, -DESK.depth / 2 + 0.03],
+    laser: [SENSOR_X, (underside + DOT_Y) * 0.5, SENSOR_Z],
+  };
+}
 
 /** Beam opacity breathes 0.85 → 1 over 2 s (DESIGN.md §8.7); off under reduced motion. */
 function useBreath(enabled: boolean): number {
@@ -41,40 +53,51 @@ export interface SensorProps {
 }
 
 export function Sensor({ heightM, palette, monitorZ, breathe }: SensorProps) {
-  const boxY = heightM - BOX[1] / 2 + 0.002;
+  const underside = heightM - DESK.topThickness;
+  const boxY = underside - BOX[1] / 2;
   const beamTop = boxY - BOX[1] / 2;
   const beamLen = beamTop - DOT_Y;
   const opacity = useBreath(breathe);
+  const back = -DESK.depth / 2;
 
   const cable = useMemo<Vec3[]>(
     () => [
-      [SENSOR_X - 0.01, heightM + 0.004, SENSOR_Z - 0.012],
-      [DESK.width / 2 - 0.03, heightM + 0.004, -DESK.depth / 2 + 0.035],
-      [0.25, heightM + 0.004, -DESK.depth / 2 + 0.03],
+      [SENSOR_X - 0.01, underside - 0.014, SENSOR_Z - 0.02],
+      [SENSOR_X - 0.03, underside - 0.008, back + 0.02],
+      [SENSOR_X - 0.05, underside + 0.012, back - 0.018],
+      [SENSOR_X - 0.08, heightM + 0.004, back + 0.025],
+      [0.25, heightM + 0.004, back + 0.03],
       [0.04, heightM + 0.006, monitorZ - 0.06],
       [0.0, heightM + 0.09, monitorZ - 0.02],
     ],
-    [heightM, monitorZ],
+    [heightM, underside, monitorZ, back],
   );
 
   return (
     <group>
       <group position={[SENSOR_X, boxY, SENSOR_Z]}>
         <Block size={BOX} bevel="small" color={palette.pcb} />
-        {/* copper edge on the outer face: the "honest PCB" detail */}
+        {/* copper pads on the two faces the camera sees: the "honest PCB" detail */}
         <Block
-          size={[0.004, 0.02, 0.034]}
-          position={[BOX[0] / 2 + 0.001, -0.002, 0]}
+          size={[0.004, 0.016, 0.03]}
+          position={[BOX[0] / 2 + 0.001, 0, 0]}
           bevel="small"
           color={palette.copper}
           castShadow={false}
         />
-        {/* clamp lip over the top edge */}
         <Block
-          size={[0.05, 0.006, 0.03]}
-          position={[-0.02, BOX[1] / 2 + 0.003, 0]}
+          size={[0.04, 0.016, 0.004]}
+          position={[0, 0, BOX[2] / 2 + 0.001]}
           bevel="small"
-          color={palette.pcb}
+          color={palette.copper}
+          castShadow={false}
+        />
+        {/* the lens: a small dark square on the underside, where the beam leaves */}
+        <Block
+          size={[0.012, 0.003, 0.012]}
+          position={[0, -BOX[1] / 2 - 0.001, 0]}
+          bevel="small"
+          color={palette.ink}
           castShadow={false}
         />
       </group>
