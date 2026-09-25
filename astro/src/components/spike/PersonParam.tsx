@@ -19,14 +19,20 @@ interface StyleProps {
   inkColor: string;
 }
 
-/** screen-space so the scaled ellipsoids get the same line as the capsules */
+/**
+ * Screen-space pixels, so the non-uniformly scaled ellipsoids get the same line
+ * as the capsules. drei 10.7.8 (and master, 2026-09-25) has the shader branches
+ * swapped: `screenspace={true}` offsets by `thickness` WORLD units (1.5 m here,
+ * a shell over the whole background), `screenspace={false}` offsets by pixels.
+ */
 const OUTLINE_PX = 1.5;
+const DREI_SCREENSPACE_INVERTED = false;
 
 function Skin({ color, smooth, outlines, inkColor }: StyleProps) {
   return (
     <>
       {smooth ? <meshLambertMaterial color={color} /> : <meshLambertMaterial color={color} flatShading />}
-      {outlines && <Outlines screenspace thickness={OUTLINE_PX} color={inkColor} />}
+      {outlines && <Outlines screenspace={DREI_SCREENSPACE_INVERTED} thickness={OUTLINE_PX} color={inkColor} />}
     </>
   );
 }

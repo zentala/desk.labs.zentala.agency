@@ -39,6 +39,18 @@ function Rig({ settings, resetTick }: { settings: SpikeSettings; resetTick: numb
     invalidate();
   }, [resetTick, settings.camHeight, settings.fov, settings.orbit, invalidate]);
 
+  // screenshot hook: aim the orbit camera at an arbitrary close-up (spike page only)
+  useEffect(() => {
+    const hook = (window as unknown as { __spike?: Record<string, unknown> }).__spike;
+    if (!hook) return;
+    hook.look = (position: [number, number, number], target: [number, number, number]) => {
+      cam.current?.position.set(...position);
+      controls.current?.target.set(...target);
+      controls.current?.update();
+      invalidate();
+    };
+  });
+
   // the kit's pointer parallax, reproduced here so it can be switched against orbit/frameloop
   useEffect(() => {
     if (!settings.parallax) return;
