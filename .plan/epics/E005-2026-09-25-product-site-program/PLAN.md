@@ -114,7 +114,7 @@ zanim ruszy droga budowa.
 
 ## 8. Decyzje do potwierdzenia
 
-1. **Główna = produkt, raport → `/dziennik`?** [domyślne: tak — Paweł poprosił o wyjaśnienie, czym jest „raport”, otwarte]
+1. ✅ **Główna = produkt (Paweł, 2026-09-25):** raport inżynierski przechodzi pod `/build-log`.
 2. ✅ **CTA (Paweł, 2026-09-25):** główny „Powiadom mnie o premierze”, drugi „Zbuduj sam”.
 3. **Backend zapisów** — obecny `waitlist…/api/signup` nie istnieje. Co przyjmuje e-maile?
    [domyślne: prosty Cloudflare Worker + D1 albo gotowy formularz, decyzja w E011]
@@ -139,3 +139,31 @@ zanim ruszy droga budowa.
 ## 11. Wave 1 findings so far
 
 - **E009 reuse (wave1/E009-meblarz-reuse.md):** `meblarz` is a source of patterns to copy, not a dependency. Its viewport pins `@react-three/fiber ^8` and React 18, while `astro/` runs React 19.2, so we need fiber v9. It has no GLB export, no WebGL screenshots, no flat shading and no characters. The CC0 character sources are not verified yet. The agent estimates E009 at ~31 pts (my plan said 13). Re-split E009 into two epics before dispatch.
+
+## 12. Checkpoint 1 decisions (Paweł, 2026-09-25, "ok")
+
+1. The homepage is the product page. The engineering report moves to `/build-log`.
+2. Design direction: "Warm workshop" (wave1/E008b) is the base for DESIGN.md v2. Keep whatever is good in the current site (E008a).
+3. "Short stands count": the website presents it as the start of a habit, not as a health dose.
+4. Owner's framing (to verify against evidence, E007b): what counts is a **change of position**, not standing as such. Standing up also means more incidental movement. The app's default minimum stand is 2 min, or possibly 10–15 min; the owner is unsure. Verify it in the app repo.
+5. Streaks: promise them only if app v1 has them.
+6. DIY price: EUR, or no amount.
+
+## 13. What the app actually does (MoveUp, verified in code 2026-09-25)
+
+Product repo: `~/code/MoveUp` (Tauri + Rust + React). Defaults are in `src-tauri/src/ergonomic_profile.rs:11-33`. The website must follow these values, not `NOTIFICATION-ALGORITHM.md` (which says 45 min / 2 min).
+
+| Rule | Default | Source |
+|---|---|---|
+| Sitting before a nudge | **40 min** | `sitting_secs` 2400 |
+| Minimum break that counts (stand, walk, away) | **1 min** | `break_min_secs` 60 |
+| Break credit | **1 min up = 2 min of sitting cancelled**, proportional, no cliffs | `break_credit_multiplier` 2.0, MoveUp ADR 008 |
+| Full break (bonus points) | 15 min of standing | `standing_target_secs` 900 |
+| Standing too long → suggest sitting | 90 min | `standing_max_secs` 5400 |
+| Posture changes KPI | sit→stand and stand→sit both count, and leaving the computer ≥5 min counts too. Green ≥1/h, yellow ≥0.5/h | `session_reading.rs:135-146, 209-216`, `changes_green/yellow` |
+| Screen break (sitting + standing) | 60 min | `max_continuous_computer_secs` |
+| Scoring | +1 pt/min standing, −0.5 pt/min sitting, +5 session bonus. **No streaks.** | `Scoring` |
+
+Everything is configurable per profile. Found along the way: `Limits.standing_secs` (1200) is declared but not read by the engine. Dead config belongs in the MoveUp backlog, not here.
+
+Consequence for the story: the claim is not "stand 2 minutes". It is **"change position; every minute up buys back two minutes of sitting; too much standing gets a nudge too"**. That matches the owner's framing that the change of position is what counts. Streaks are not promised; points and a posture-change rate are.
