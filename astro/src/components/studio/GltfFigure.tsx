@@ -106,6 +106,7 @@ export default function GltfFigure({ kind, frame, walk, ourStyle, color, relax, 
 
   /** Pose the mixer for a set of picks: every other action off, time and weight set, no clock. */
   const pose = (picks: ReturnType<typeof pickClips>) => {
+    if (snapshot.current?.length !== bones.length) snapshot.current = null;
     snapshot.current?.forEach(([q, pos], i) => {
       bones[i].quaternion.copy(q);
       bones[i].position.copy(pos);

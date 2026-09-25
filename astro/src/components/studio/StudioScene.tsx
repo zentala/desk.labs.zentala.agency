@@ -81,7 +81,8 @@ function Figure({ s, frame, palette }: { s: StudioSettings; frame: SceneFrame; p
   const walk = walkOffset(frame);
   if (isGltfFigure(s.figure)) {
     return (
-      <GltfFigure kind={s.figure} frame={frame} walk={walk} ourStyle={s.ourStyle} color={palette.figure} relax={s} keyboard={keyboardAt(deskHeight(frame.deskT))} />
+      // keyed: a new model means a new mixer, bone snapshot and seat offset
+      <GltfFigure key={s.figure} kind={s.figure} frame={frame} walk={walk} ourStyle={s.ourStyle} color={palette.figure} relax={s} keyboard={keyboardAt(deskHeight(frame.deskT))} />
     );
   }
   if (s.figure === "mannequin") {
