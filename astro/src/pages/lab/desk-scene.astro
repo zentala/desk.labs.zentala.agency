@@ -1,0 +1,39 @@
+---
+import '../../styles/global.css';
+import DeskScene from '../../components/scene/DeskScene';
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Lab: DeskScene — Open Smart Desk</title>
+  </head>
+  <body class="bg-bg text-ink" style="min-height: 100vh; padding: 48px 24px;">
+    <main style="max-width: 720px; margin: 0 auto;">
+      <p style="font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ink-muted);">
+        Lab — internal preview, not indexed
+      </p>
+      <h1 style="font-family: var(--font-display); font-size: 2.25rem; margin: 8px 0 16px;">
+        DeskScene v1
+      </h1>
+      <p style="color: var(--color-ink-muted); max-width: 60ch; margin-bottom: 24px;">
+        Procedural, flat-shaded hero scene. Click the buttons below the scene to switch state, or
+        set your OS to reduced motion to see the instant-state fallback used elsewhere on the site.
+      </p>
+      <noscript>
+        <img
+          src="/images/scene/desk-scene.webp"
+          alt="Illustration of a height-adjustable desk with a sensor box, laser beam and a monitor showing a nudge notification"
+          width="960"
+          height="600"
+          style="width: 100%; border-radius: 20px;"
+        />
+      </noscript>
+      <div id="desk-scene-root">
+        <DeskScene client:visible autoPlay={false} />
+      </div>
+    </main>
+  </body>
+</html>
